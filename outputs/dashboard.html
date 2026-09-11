@@ -52,6 +52,7 @@
 
   .live-line{font-family:'IBM Plex Mono', monospace; font-size:0.84rem; color:var(--text-dim); margin-bottom:16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .live-dot{width:7px;height:7px;border-radius:50%;background:var(--live-dot); animation:pulse 1.6s ease-in-out infinite; flex-shrink:0;}
+  .live-dot.static{background:transparent; border:1.5px solid var(--text-mute); animation:none;}
   @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
   .live-line .k{color:var(--text-mute);}
 
@@ -419,8 +420,22 @@ async function poll(){
     if(!res.ok) throw new Error('not ready');
     const data = await res.json();
 
-    document.getElementById('live-text').textContent =
-      data.processed >= data.target_n ? 'run complete' : `running — last update ${new Date(data.updated_at*1000).toLocaleTimeString()}`;
+    // A deployed static host (e.g. Vercel) serves this JSON as a fixed file
+    // with no process behind it -- updated_at stops advancing. Distinguish
+    // that honestly from an actually-running local instance rather than
+    // claiming "running" forever against a frozen snapshot.
+    const ageSeconds = Date.now()/1000 - data.updated_at;
+    const isLive = ageSeconds < 30;
+    const dot = document.querySelector('.live-dot');
+    const liveText = document.getElementById('live-text');
+    dot.classList.toggle('static', !isLive);
+    if (isLive) {
+      liveText.textContent = data.processed >= data.target_n
+        ? 'run complete' : `running — last update ${new Date(data.updated_at*1000).toLocaleTimeString()}`;
+    } else {
+      const d = new Date(data.updated_at*1000);
+      liveText.textContent = `static snapshot from ${d.toLocaleDateString()} ${d.toLocaleTimeString()} — see repo to run live locally`;
+    }
     document.getElementById('s-processed').textContent = `${data.processed}/${data.target_n} clips`;
     document.getElementById('s-floor').textContent = data.floor.toFixed(4);
 
