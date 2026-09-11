@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+floor.json
+decoder.pt
+stage_d_results.csv
+data/
+checkpoints/
+vendor/
+outputs/live_frames/
+outputs/runner.log
+*.tmp
+*.tmp.png
+.DS_Store
+.claude/

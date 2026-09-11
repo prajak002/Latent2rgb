@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "latent2rgb"
+version = "0.1.0"
+description = "Pixel decoding as a diagnostic instrument for latent-only state predictors"
+requires-python = ">=3.11"
+dependencies = [
+    "torch",
+    "numpy",
+    "pandas",
+    "scipy",
+]
+
+[tool.setuptools.packages.find]
+include = ["latent2rgb*"]

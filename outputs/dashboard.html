@@ -1,0 +1,510 @@
+<meta charset="utf-8">
+<title>Horizon Ladder</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef1f4; --text:#161b22; --text-dim:#5b6472; --text-mute:#848f9c;
+    --border:#ccd4dc; --grid:#dde3e9; --live-dot:#1f6b2b;
+    --ssv2:#2a78d6; --kinetics:#1baf7a; --pass:#1f6b2b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
+      --border:#2c3440; --grid:#252c37; --live-dot:#7fce8f;
+      --ssv2:#3987e5; --kinetics:#199e70; --pass:#7fce8f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
+    --border:#2c3440; --grid:#252c37; --live-dot:#7fce8f;
+    --ssv2:#3987e5; --kinetics:#199e70; --pass:#7fce8f;
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--text); font-family:'IBM Plex Sans', system-ui, sans-serif; padding:0 20px; padding-block:48px 90px;}
+  .wrap{max-width:800px;margin:0 auto;}
+
+  .kicker{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); margin:0 0 14px;}
+  h1{font-family:'Instrument Serif', Georgia, serif; font-style:italic; font-weight:400; font-size:clamp(2.4rem,6vw,3.4rem); margin:0 0 30px; line-height:1.02;}
+  h2{font-weight:700; font-size:1.1rem; margin:0 0 12px; letter-spacing:-0.01em;}
+  .num{color:var(--text-mute); font-weight:500; margin-right:6px;}
+  p{line-height:1.6; font-size:0.96rem; color:var(--text-dim); margin:0 0 12px; max-width:70ch;}
+  p b{color:var(--text); font-weight:600;}
+  p code, li code{font-family:'IBM Plex Mono', monospace; background:var(--grid); padding:1px 5px; border-radius:4px; font-size:0.88em; color:var(--text);}
+  .section{border-top:1px solid var(--border); padding-block:28px;}
+
+  ol, ul.plain{margin:0; padding-left:20px; color:var(--text-dim); line-height:1.6; max-width:70ch; font-size:0.96rem;}
+  ol li, ul.plain li{margin-bottom:8px;}
+  ol b, ul.plain b{color:var(--text);}
+
+  table.spec{border-collapse:collapse; width:100%; font-size:0.9rem; margin-bottom:4px;}
+  table.spec th, table.spec td{text-align:left; padding:6px 12px 6px 0; border-bottom:1px solid var(--grid);}
+  table.spec th{color:var(--text-mute); font-weight:500; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;}
+  table.spec td{color:var(--text-dim);}
+  table.spec td.dot-cell{display:flex; align-items:center; gap:8px; color:var(--text); font-weight:600;}
+
+  .math{
+    font-family:'IBM Plex Mono', monospace; font-size:0.86rem; line-height:2.1; color:var(--text);
+    background:var(--grid); border-radius:8px; padding:16px 18px; margin-bottom:14px; overflow-x:auto;
+  }
+  .math .def{color:var(--text-dim); font-size:0.82rem;}
+
+  .live-line{font-family:'IBM Plex Mono', monospace; font-size:0.84rem; color:var(--text-dim); margin-bottom:16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--live-dot); animation:pulse 1.6s ease-in-out infinite; flex-shrink:0;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
+  .live-line .k{color:var(--text-mute);}
+
+  .dataset-legend{display:flex; gap:20px; flex-wrap:wrap; margin-bottom:14px; font-family:'IBM Plex Mono', monospace; font-size:0.78rem;}
+  .dataset-legend span{display:inline-flex; align-items:center; gap:7px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+
+  .charts{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:16px;}
+  .chart-title{font-size:0.84rem; font-weight:600; margin-bottom:2px;}
+  .chart-sub{font-family:'IBM Plex Mono', monospace; font-size:0.64rem; color:var(--text-mute); margin-bottom:6px;}
+  svg text{font-family:'IBM Plex Mono', monospace; fill:var(--text-mute);}
+
+  table.data{border-collapse:collapse; width:100%; font-family:'IBM Plex Mono', monospace; font-size:0.78rem; margin-bottom:16px;}
+  table.data th, table.data td{text-align:right; padding:5px 9px; font-variant-numeric:tabular-nums;}
+  table.data th:first-child, table.data td:first-child{text-align:left;}
+  table.data th{color:var(--text-mute); font-weight:500; border-bottom:1px solid var(--border);}
+  table.data td{border-bottom:1px solid var(--grid); color:var(--text-dim);}
+  table.data tr:last-child td{border-bottom:none;}
+
+  .cross-check{font-family:'IBM Plex Mono', monospace; font-size:0.8rem; color:var(--text-dim); line-height:1.8; margin-bottom:16px;}
+  .cross-check b{color:var(--text);}
+
+  .result-box{
+    font-family:'IBM Plex Mono', monospace; font-size:0.8rem; line-height:1.8; color:var(--text-dim);
+    background:var(--grid); border-radius:8px; padding:14px 16px; margin-bottom:16px; max-width:70ch;
+  }
+  .result-box b{color:var(--text);}
+  .pass{color:var(--pass);}
+
+  .traj-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .feed-grid{display:grid; grid-template-columns:1fr; gap:36px; margin-bottom:8px;}
+  .feed-grid > div{min-width:0;}
+  .feed-panel-title{font-size:1rem; font-weight:700; margin-bottom:4px;}
+  .feed-slider-row{display:flex; align-items:center; gap:12px; margin-bottom:16px; width:100%; min-width:0;}
+  .feed-slider-row input[type="range"]{flex:1 1 auto; min-width:0; width:0; accent-color:var(--text); height:4px; cursor:pointer;}
+  .feed-slider-label{font-family:'IBM Plex Mono', monospace; font-size:0.8rem; color:var(--text-dim); white-space:nowrap; min-width:11ch;}
+  .feed-row{display:flex; gap:14px; align-items:flex-start; overflow-x:auto; padding-bottom:6px;}
+  .feed-context{flex:0 0 auto; width:120px;}
+  .feed-context img{width:120px; height:120px; object-fit:cover; border-radius:8px; display:block;}
+  .feed-k{flex:0 0 auto; width:170px;}
+  .feed-k img{width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:7px; display:block; margin-bottom:6px;}
+  .feed-k img.true-img{outline:3px solid var(--text-mute);}
+  .feed-cap{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--text-mute); margin-bottom:5px; font-weight:500;}
+  .feed-sub-cap{font-family:'IBM Plex Mono', monospace; font-size:0.62rem; color:var(--text-mute); text-align:center; margin-top:2px;}
+  .feed-clip-id{font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--text-mute); margin-bottom:10px;}
+
+  footer{margin-top:6px; padding-top:20px; border-top:1px solid var(--border); font-size:0.78rem; color:var(--text-mute); line-height:1.6;}
+  footer code{font-family:'IBM Plex Mono', monospace; background:var(--grid); padding:1px 5px; border-radius:4px; font-size:0.85em;}
+
+  @media (max-width:640px){ .charts, .traj-grid, .feed-grid{grid-template-columns:1fr;} }
+</style>
+
+<div class="wrap">
+
+  <p class="kicker">A diagnostic protocol for latent-only world models</p>
+  <h1>Horizon Ladder</h1>
+
+  <div class="section">
+    <h2><span class="num">1.</span>Research question</h2>
+    <p>
+      Given a frozen, latent-only state predictor <code>P</code> (no native pixel decoder) and its rolled-forward
+      latent <code>ẑ[t+k] = P(z[t], k)</code>: does decoding <code>ẑ[t+k]</code> reveal a pixel-space error that
+      diverges from how far <code>ẑ[t+k]</code> sits from the truth in representation space? And does a decode
+      error, once re-injected into the rollout, compound as k grows?
+    </p>
+    <p>
+      No prior representation-inversion method can ask this &mdash; each inverts a latent of an image that already
+      exists. A rolled-forward latent represents a future that never happened.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">2.</span>Proposed solution</h2>
+    <ul class="plain">
+      <li><b>Instrument.</b> Attach a deliberately minimal decoder (single linear layer per token, plain pixel
+      loss, no perceptual/adversarial/diffusion loss) to a predictor that genuinely ships no decoder (V-JEPA2).
+      A stronger decoder would hallucinate detail the latent doesn't carry, hiding the failure being measured.</li>
+      <li><b>Validation.</b> Before trusting any result, check the instrument itself isn't the source of the
+      signal &mdash; does the decoder leak context or snap to a generic output.</li>
+      <li><b>Compounding test.</b> Decode a rolled-forward latent, re-encode it, re-inject it into the rollout,
+      and check whether the resulting error grows or shrinks with further horizon.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">3.</span>Dataset</h2>
+    <table class="spec">
+      <thead><tr><th>Dataset</th><th>Domain</th><th>fps</th><th>Clips staged</th><th>Resolution</th></tr></thead>
+      <tbody>
+        <tr><td class="dot-cell"><span class="dot" style="background:var(--ssv2)"></span>Something-Something v2</td><td>close-up hand-object manipulation</td><td>12</td><td>4,923</td><td>256&times;256 center crop</td></tr>
+        <tr><td class="dot-cell"><span class="dot" style="background:var(--kinetics)"></span>Kinetics-mini</td><td>full-body sports / outdoor actions</td><td>25</td><td>100</td><td>256&times;256 center crop</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">4.</span>Experimentation methodology</h2>
+    <ol>
+      <li><b>Context:</b> encode real frames <code>[0..t]</code> with the frozen V-JEPA2 ViT-L encoder &rarr;
+      token sequence, 256 tokens per 2-frame tubelet.</li>
+      <li><b>Causal query:</b> construct <code>masks_x</code> (context) / <code>masks_y</code> (target tubelet at
+      <code>t+k</code>), one predictor call per <code>k &isin; {2,4,8,16,32}</code>. Out-of-distribution for the
+      predictor &mdash; it was trained to fill gaps in an already-observed clip, never to extrapolate a causal
+      past into an unseen future.</li>
+      <li><b>Decode:</b> the linear decoder turns predicted tokens back into 2 RGB frames.</li>
+      <li><b>Compare:</b> latent_drift, pixel_error, and pixel_error read against the decoder's own real-frame
+      reconstruction floor.</li>
+      <li><b>Honesty checks:</b> context leakage (decode clip A's latent, compare to clip A vs. clip B) and
+      snapping (interpolate between two real clips' latents, check for smooth vs. jump degradation) &mdash; on
+      real encoded latents, no predictor involved.</li>
+      <li><b>Re-injection:</b> decode + re-encode the predicted tubelet at k=8, extend the context two ways (raw
+      vs. round-tripped), query <code>j &isin; {2,4}</code> further, compare.</li>
+      <li><b>Cross-check:</b> every step repeated independently on both datasets.</li>
+    </ol>
+    <p style="margin-top:10px;">
+      Not run: counterfactual faithfulness (rolling one state under two different actions). The base predictor
+      has no action input &mdash; this needs V-JEPA2-AC and a real action-conditioned dataset, not more compute
+      on this setup.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">5.</span>Mathematical background</h2>
+    <div class="math">
+      <div class="def">context, prediction, ground truth</div>
+      z[t] = Enc(x[0:t])<br>
+      ẑ[t+k] = P(z[t], k)  &nbsp;&mdash;&nbsp; causal masks_x/masks_y query, horizon k<br>
+      z*[t+k] = Enc(x[t+k])<br><br>
+      <div class="def">core metrics</div>
+      latent_drift[k] = ‖ ẑ[t+k] &minus; z*[t+k] ‖₂<br>
+      pixel_error[k]  = ‖ D(ẑ[t+k]) &minus; x[t+k] ‖₂<br>
+      floor           = E[ ‖ D(Enc(x)) &minus; x ‖₂ ]  &nbsp;over real x, no rollout<br>
+      excess[k]       = pixel_error[k] &minus; floor<br><br>
+      <div class="def">separation fit (low-k fit, evaluated at high k)</div>
+      pixel_error &approx; a&middot;latent_drift + b&nbsp;&nbsp;(fit on k&isin;fit_set)<br>
+      residual[k] = pixel_error[k] &minus; (a&middot;latent_drift[k] + b)<br><br>
+      <div class="def">honesty checks</div>
+      leakage_gap = ‖ D(z_A) &minus; x_B ‖ &minus; ‖ D(z_A) &minus; x_A ‖<br>
+      snap_curvature = max_i | e[i+1] &minus; 2e[i] + e[i&minus;1] |,&nbsp; e[i] = ‖ D((1&minus;&alpha;_i)z_A + &alpha;_i z_B) &minus; x_A ‖<br><br>
+      <div class="def">re-injection divergence</div>
+      z'[t+k_r] = Enc(D(ẑ[t+k_r]))<br>
+      divergence[j] = ‖ P(ẑ[t+k_r], j) &minus; P(z'[t+k_r], j) ‖<br>
+      rate = slope of divergence[j] over j &nbsp;&mdash;&nbsp; rate &gt; 0 = compounding, rate &lt; 0 = converging
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">6.</span>Result</h2>
+    <div class="live-line"><span class="live-dot"></span><span id="live-text">connecting&hellip;</span></div>
+
+    <p>
+      Under the causal query, latent_drift barely moves with horizon (2&ndash;3% from k=2 to k=32) on both
+      datasets, while pixel_error moves several times more. Since latent_drift is flat, that pixel-error movement
+      can't be explained by the latent simply drifting further from the truth. Stage E below rules out a broken
+      decoder as the cause; Stage F shows the effect does not compound.
+    </p>
+
+    <div class="dataset-legend">
+      <span><span class="dot" style="background:var(--ssv2)"></span>SSv2</span>
+      <span><span class="dot" style="background:var(--kinetics)"></span>Kinetics-mini</span>
+      <span class="k" id="s-processed">&mdash;</span>
+      <span class="k">floor <span id="s-floor">&mdash;</span></span>
+    </div>
+
+    <div class="charts">
+      <div>
+        <div class="chart-title">latent_drift vs horizon</div>
+        <div class="chart-sub">running mean, per dataset</div>
+        <svg id="chart-latent" viewBox="0 0 400 240" width="100%"></svg>
+      </div>
+      <div>
+        <div class="chart-title">pixel_error vs horizon</div>
+        <div class="chart-sub">running mean; dashed = floor</div>
+        <svg id="chart-pixel" viewBox="0 0 400 240" width="100%"></svg>
+      </div>
+    </div>
+
+    <div class="cross-check" id="cross-check">computing cross-dataset comparison&hellip;</div>
+    <table class="data" id="stats-table"><thead><tr><th>dataset</th><th>k</th><th>n</th><th>latent_drift</th><th>pixel_error</th></tr></thead><tbody></tbody></table>
+
+    <div class="result-box" id="stage-e-box">loading Stage E (decoder honesty)&hellip;</div>
+    <div class="result-box" id="stage-f-box">loading Stage F (re-injection divergence)&hellip;</div>
+
+    <div class="chart-title" style="margin-bottom:12px; font-size:0.96rem;">Live feed &mdash; browse recently processed clips</div>
+    <div class="feed-grid" style="margin-bottom:24px;">
+      <div>
+        <div class="feed-panel-title" style="color:var(--ssv2)">Something-Something v2</div>
+        <div class="feed-slider-row">
+          <input type="range" id="feed-slider-ssv2" min="0" max="0" value="0" disabled>
+          <span class="feed-slider-label" id="feed-slider-label-ssv2">0 / 0</span>
+        </div>
+        <div class="feed-clip-id" id="feed-clip-ssv2">waiting for first full-horizon clip&hellip;</div>
+        <div class="feed-row" id="feed-row-ssv2"></div>
+      </div>
+      <div>
+        <div class="feed-panel-title" style="color:var(--kinetics)">Kinetics-mini</div>
+        <div class="feed-slider-row">
+          <input type="range" id="feed-slider-kinetics_mini" min="0" max="0" value="0" disabled>
+          <span class="feed-slider-label" id="feed-slider-label-kinetics_mini">0 / 0</span>
+        </div>
+        <div class="feed-clip-id" id="feed-clip-kinetics_mini">waiting for first full-horizon clip&hellip;</div>
+        <div class="feed-row" id="feed-row-kinetics_mini"></div>
+      </div>
+    </div>
+
+    <div class="chart-title" style="margin-bottom:8px;">Latent trajectory &mdash; mean-pooled, PCA to 2D; solid=true, dashed=predicted</div>
+    <div class="traj-grid">
+      <div>
+        <div class="chart-sub" id="traj-clip-ssv2">waiting&hellip;</div>
+        <svg id="chart-traj-ssv2" viewBox="0 0 300 260" width="100%"></svg>
+      </div>
+      <div>
+        <div class="chart-sub" id="traj-clip-kinetics_mini">waiting&hellip;</div>
+        <svg id="chart-traj-kinetics_mini" viewBox="0 0 300 260" width="100%"></svg>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Runner: <code>scripts/live_dashboard_runner.py</code> &middot; Stage E: <code>scripts/stage_e_real.py</code>
+    &middot; Stage F: <code>scripts/stage_f_reinjection.py</code>. Decoder: single per-token linear layer, no
+    perceptual or adversarial loss.
+  </footer>
+
+</div>
+
+<script>
+const HORIZONS = [2,4,8,16,32];
+const DATASET_COLOR = {ssv2: 'var(--ssv2)', kinetics_mini: 'var(--kinetics)'};
+const DATASET_LABEL = {ssv2: 'SSv2', kinetics_mini: 'Kinetics-mini'};
+const feedHistory = {ssv2: [], kinetics_mini: []};       // [{seq, clip_id}], oldest -> newest
+const followingLatest = {ssv2: true, kinetics_mini: true}; // auto-advance slider until user drags it
+
+function drawComparisonChart(svgId, byKPerDataset, key, floor){
+  const svg = document.getElementById(svgId);
+  const W = 400, H = 240;
+  const padL = 46, padR = 14, padT = 14, padB = 30;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+
+  const datasets = Object.keys(byKPerDataset).filter(d => Object.keys(byKPerDataset[d]).length > 0);
+  if(datasets.length === 0){ svg.innerHTML = ''; return; }
+
+  let allVals = [];
+  datasets.forEach(d => HORIZONS.forEach(k => { if(byKPerDataset[d][k]) allVals.push(byKPerDataset[d][k][key+'_mean']); }));
+  let yMax = Math.max(...allVals, floor || 0) * 1.15;
+  let yMin = 0;
+
+  const x = k => padL + (HORIZONS.indexOf(k)/(HORIZONS.length-1)) * plotW;
+  const y = v => padT + plotH - ((v - yMin)/(yMax - yMin)) * plotH;
+
+  let s = '';
+  const gridN = 4;
+  for(let g=0; g<=gridN; g++){
+    const gy = padT + (g/gridN)*plotH;
+    const val = yMax - (g/gridN)*(yMax-yMin);
+    s += `<line x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke="var(--grid)" stroke-width="1"/>`;
+    s += `<text x="${padL-8}" y="${gy+3}" font-size="8" text-anchor="end">${key==='latent_drift'?Math.round(val):val.toFixed(2)}</text>`;
+  }
+  if(floor){
+    const fy = y(floor);
+    s += `<line x1="${padL}" y1="${fy}" x2="${W-padR}" y2="${fy}" stroke="var(--text-mute)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  }
+  HORIZONS.forEach(k => { s += `<text x="${x(k)}" y="${H-8}" font-size="8" text-anchor="middle">${k}</text>`; });
+  s += `<text x="${padL+plotW/2}" y="${H-1}" font-size="7.5" text-anchor="middle" opacity="0.7">horizon k (frames)</text>`;
+
+  datasets.forEach(d => {
+    const ks = HORIZONS.filter(k => byKPerDataset[d][k]);
+    if(ks.length === 0) return;
+    const pts = ks.map(k => `${x(k)},${y(byKPerDataset[d][k][key+'_mean'])}`).join(' ');
+    const color = DATASET_COLOR[d] || 'var(--text-mute)';
+    s += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    ks.forEach(k => {
+      const b = byKPerDataset[d][k];
+      s += `<circle cx="${x(k)}" cy="${y(b[key+'_mean'])}" r="4" fill="${color}" stroke="var(--bg)" stroke-width="1.5"><title>${DATASET_LABEL[d]} k=${k}: ${b[key+'_mean'].toFixed(4)} (n=${b.n})</title></circle>`;
+    });
+  });
+  svg.innerHTML = s;
+}
+
+function drawTrajectory(svgId, labelId, traj, color){
+  const svg = document.getElementById(svgId);
+  const label = document.getElementById(labelId);
+  if(!traj){ return; }
+  label.textContent = `clip ${traj.clip_id} — PC1/PC2 explain ${(traj.explained_variance[0]*100).toFixed(0)}% / ${(traj.explained_variance[1]*100).toFixed(0)}% of variance`;
+
+  const W = 300, H = 260, pad = 30;
+  const b = traj.bounds;
+  const xr = Math.max(b.x_max-b.x_min, 1e-6), yr = Math.max(b.y_max-b.y_min, 1e-6);
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const sx = p => pad + clamp01((p[0]-b.x_min)/xr)*(W-2*pad);
+  const sy = p => H-pad - clamp01((p[1]-b.y_min)/yr)*(H-2*pad);
+
+  function path(arr, dashed){
+    const pts = arr.map(([k,p]) => `${sx(p)},${sy(p)}`).join(' ');
+    let s = `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" ${dashed?'stroke-dasharray="4,3"':''}/>`;
+    arr.forEach(([k,p],i) => {
+      const r = 3 + i*0.7;
+      s += dashed
+        ? `<circle cx="${sx(p)}" cy="${sy(p)}" r="${r}" fill="var(--bg)" stroke="${color}" stroke-width="1.5"><title>k=${k}</title></circle>`
+        : `<circle cx="${sx(p)}" cy="${sy(p)}" r="${r}" fill="${color}"><title>k=${k}</title></circle>`;
+      if(i===arr.length-1) s += `<text x="${sx(p)+7}" y="${sy(p)+3}" font-size="9" fill="${color}">k=${k}</text>`;
+    });
+    return s;
+  }
+  svg.innerHTML = path(traj.true, false) + path(traj.pred, true);
+}
+
+function renderFeedSlot(name, idx){
+  const hist = feedHistory[name];
+  if(!hist.length) return;
+  idx = Math.max(0, Math.min(hist.length - 1, idx));
+  const {seq, clip_id} = hist[idx];
+  const row = document.getElementById(`feed-row-${name}`);
+  const label = document.getElementById(`feed-clip-${name}`);
+  const sliderLabel = document.getElementById(`feed-slider-label-${name}`);
+  label.textContent = `clip ${clip_id}`;
+  sliderLabel.textContent = `${idx + 1} / ${hist.length}`;
+  const p = `${name}_${seq}`;
+  row.innerHTML = `
+    <div class="feed-context">
+      <img src="live_frames/${p}_context.png">
+      <div class="feed-sub-cap">context (t=8)</div>
+    </div>
+    ${HORIZONS.map(k => `
+      <div class="feed-k">
+        <div class="feed-cap">k=${k}</div>
+        <img class="true-img" src="live_frames/${p}_k${k}_true.png">
+        <img src="live_frames/${p}_k${k}_rollout.png">
+        <div class="feed-sub-cap">true (outlined) / rollout</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function setupFeedSlider(name){
+  const slider = document.getElementById(`feed-slider-${name}`);
+  slider.addEventListener('input', () => {
+    const hist = feedHistory[name];
+    followingLatest[name] = (parseInt(slider.value, 10) === hist.length - 1);
+    renderFeedSlot(name, parseInt(slider.value, 10));
+  });
+}
+setupFeedSlider('ssv2');
+setupFeedSlider('kinetics_mini');
+
+function updateFeedHistory(name, history){
+  if(!history || !history.length) return;
+  const slider = document.getElementById(`feed-slider-${name}`);
+  const prevLen = feedHistory[name].length;
+  feedHistory[name] = history;
+  slider.max = history.length - 1;
+  slider.disabled = false;
+  if(followingLatest[name] || prevLen === 0){
+    slider.value = history.length - 1;
+    renderFeedSlot(name, history.length - 1);
+  } else {
+    // keep viewing the same slot the user parked on, clamped to new length
+    renderFeedSlot(name, parseInt(slider.value, 10));
+  }
+}
+
+async function poll(){
+  try {
+    const res = await fetch('live_results.json?t=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('not ready');
+    const data = await res.json();
+
+    document.getElementById('live-text').textContent =
+      data.processed >= data.target_n ? 'run complete' : `running — last update ${new Date(data.updated_at*1000).toLocaleTimeString()}`;
+    document.getElementById('s-processed').textContent = `${data.processed}/${data.target_n} clips`;
+    document.getElementById('s-floor').textContent = data.floor.toFixed(4);
+
+    drawComparisonChart('chart-latent', data.by_k_per_dataset, 'latent_drift', null);
+    drawComparisonChart('chart-pixel', data.by_k_per_dataset, 'pixel_error', data.floor);
+
+    Object.keys(data.trajectories || {}).forEach(name => {
+      drawTrajectory(`chart-traj-${name}`, `traj-clip-${name}`, data.trajectories[name], DATASET_COLOR[name]);
+    });
+
+    Object.keys(data.frame_history || {}).forEach(name => {
+      updateFeedHistory(name, data.frame_history[name]);
+    });
+
+    const tbody = document.querySelector('#stats-table tbody');
+    let tableRows = [];
+    Object.keys(data.by_k_per_dataset).forEach(d => {
+      HORIZONS.filter(k => data.by_k_per_dataset[d][k]).forEach(k => {
+        const b = data.by_k_per_dataset[d][k];
+        tableRows.push(`<tr><td style="color:${DATASET_COLOR[d]};font-weight:600;">${DATASET_LABEL[d]}</td><td>${k}</td><td>${b.n}</td><td>${b.latent_drift_mean.toFixed(2)}</td><td>${b.pixel_error_mean.toFixed(4)}</td></tr>`);
+      });
+    });
+    tbody.innerHTML = tableRows.join('');
+
+    const ccEl = document.getElementById('cross-check');
+    const summaries = [];
+    Object.keys(data.by_k_per_dataset).forEach(d => {
+      const bk = data.by_k_per_dataset[d];
+      const ks = HORIZONS.filter(k => bk[k]);
+      if(ks.length < 2) return;
+      const first = bk[ks[0]], last = bk[ks[ks.length-1]];
+      const ldChange = 100*(last.latent_drift_mean - first.latent_drift_mean)/first.latent_drift_mean;
+      const peChange = 100*(last.pixel_error_mean - first.pixel_error_mean)/first.pixel_error_mean;
+      summaries.push(`<b>${DATASET_LABEL[d]}</b> (n=${last.n}): latent_drift k=${ks[0]}→${ks[ks.length-1]} moves ${ldChange.toFixed(1)}%, pixel_error moves ${peChange.toFixed(1)}%`);
+    });
+    ccEl.innerHTML = summaries.length ? summaries.join('<br>') : 'waiting for enough horizons on at least one dataset…';
+  } catch(e) {
+    document.getElementById('live-text').textContent = 'waiting for first result…';
+  }
+}
+
+poll();
+setInterval(poll, 1500);
+
+async function loadStageE(){
+  try {
+    const res = await fetch('stage_e_results.json?t=' + Date.now(), {cache:'no-store'});
+    const d = await res.json();
+    const box = document.getElementById('stage-e-box');
+    const n = d.leakage.rows.length;
+    const passLeak = d.leakage.avg_gap > 0.05;
+    const maxCurv = Math.max(...d.snapping.map(s => s.max_curvature));
+    const passSnap = maxCurv < 0.02;
+    box.innerHTML = `
+      <b>Stage E &mdash; leakage</b> (${n} pairs, both datasets): same-clip ${d.leakage.avg_same.toFixed(4)},
+      cross-clip ${(d.leakage.avg_same + d.leakage.avg_gap).toFixed(4)}, gap +${d.leakage.avg_gap.toFixed(4)}
+      (${((d.leakage.avg_gap/d.leakage.avg_same)*100).toFixed(0)}%).
+      <span class="${passLeak ? 'pass' : ''}">${passLeak ? 'PASS — reads the latent, not leaking.' : 'gap too small.'}</span><br>
+      <b>Stage E &mdash; snapping</b>: max curvature ${maxCurv.toFixed(5)}.
+      <span class="${passSnap ? 'pass' : ''}">${passSnap ? 'PASS — degrades smoothly, no snap.' : 'snap detected.'}</span>
+    `;
+  } catch(e) {
+    document.getElementById('stage-e-box').textContent = 'stage_e_results.json not found — run scripts/stage_e_real.py';
+  }
+}
+loadStageE();
+
+async function loadStageF(){
+  try {
+    const res = await fetch('stage_f_results.json?t=' + Date.now(), {cache:'no-store'});
+    const d = await res.json();
+    const box = document.getElementById('stage-f-box');
+    const rows = Object.keys(d.datasets).map(name => {
+      const r = d.datasets[name];
+      const js = Object.keys(r.avg_downstream);
+      const seq = js.map(j => `j=${j}: ${r.avg_downstream[j].toFixed(4)}`).join(' → ');
+      const growing = r.divergence_rate > 0.01;
+      return `<b>Stage F &mdash; ${DATASET_LABEL[name] || name}</b> (n=${r.n}): immediate ${r.avg_immediate_delta.toFixed(3)} → ${seq}, rate ${r.divergence_rate.toFixed(4)}
+        <span class="${growing ? '' : 'pass'}">${growing ? '(compounding)' : '(converging, not compounding)'}</span>`;
+    });
+    box.innerHTML = rows.join('<br>');
+  } catch(e) {
+    document.getElementById('stage-f-box').textContent = 'stage_f_results.json not found — run scripts/stage_f_reinjection.py';
+  }
+}
+loadStageF();
+</script>

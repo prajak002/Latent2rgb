@@ -1,0 +1,292 @@
+<title>Horizon Ladder</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef1f4;
+    --text:#161b22;
+    --text-dim:#5b6472;
+    --text-mute:#848f9c;
+    --latent:#2a78d6;
+    --pixel:#4a3aa7;
+    --border:#ccd4dc;
+    --grid:#dde3e9;
+    --true:#2a78d6;
+    --floor:#5b6472;
+    --roll:#4a3aa7;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
+      --latent:#3987e5; --pixel:#d55181; --border:#2c3440; --grid:#252c37;
+      --true:#3987e5; --floor:#93a0b0; --roll:#d55181;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
+    --latent:#3987e5; --pixel:#d55181; --border:#2c3440; --grid:#252c37;
+    --true:#3987e5; --floor:#93a0b0; --roll:#d55181;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    padding:0 20px; padding-block:48px 90px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  .kicker{
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem;
+    letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim);
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:'Instrument Serif', Georgia, serif; font-style:italic; font-weight:400;
+    font-size:clamp(2.6rem,7vw,3.8rem); margin:0 0 22px; line-height:1.02; text-wrap:balance;
+  }
+  h2{
+    font-family:'IBM Plex Sans', sans-serif; font-weight:700; font-size:1.2rem;
+    margin:0 0 12px; letter-spacing:-0.01em;
+  }
+  p{line-height:1.65; font-size:1rem; color:var(--text-dim); margin:0 0 16px; max-width:66ch;}
+  p b, p strong{color:var(--text); font-weight:600;}
+  .section{border-top:1px solid var(--border); padding-block:38px;}
+
+  .stats-line{
+    font-family:'IBM Plex Mono', monospace; font-size:0.9rem; color:var(--text);
+    line-height:2; margin-bottom:24px;
+  }
+  .stats-line .k{color:var(--text-dim);}
+
+  .charts{display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-bottom:20px;}
+  .chart-title{font-size:0.86rem; font-weight:600; margin-bottom:2px;}
+  .chart-sub{font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:var(--text-mute); margin-bottom:8px;}
+  .chart-legend{display:flex; gap:16px; margin-top:6px; font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:var(--text-dim); flex-wrap:wrap;}
+  .chart-legend span{display:inline-flex; align-items:center; gap:6px;}
+  .lg-line{width:14px;height:2px;display:inline-block;}
+  svg text{font-family:'IBM Plex Mono', monospace; fill:var(--text-mute);}
+
+  table{border-collapse:collapse; width:100%; font-family:'IBM Plex Mono', monospace; font-size:0.82rem; margin-bottom:24px;}
+  th,td{text-align:right; padding:6px 10px; font-variant-numeric:tabular-nums;}
+  th:first-child,td:first-child{text-align:left;}
+  th{color:var(--text-mute); font-weight:500; border-bottom:1px solid var(--border);}
+  td{border-bottom:1px solid var(--grid); color:var(--text-dim);}
+  tr:last-child td{border-bottom:none;}
+
+  .clip-block{margin-bottom:36px;}
+  .clip-block:last-child{margin-bottom:0;}
+  .clip-id{font-family:'IBM Plex Mono', monospace; font-size:0.85rem; color:var(--text); margin-bottom:12px;}
+  .clip-id span{color:var(--text-mute);}
+  .horizon-row{display:flex; gap:18px; overflow-x:auto; padding-bottom:4px;}
+  .horizon-col{flex:0 0 auto; width:140px;}
+  .k-label{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--text-mute); margin-bottom:6px;}
+  .frame-stack{display:flex; flex-direction:column; gap:4px;}
+  .frame-stack img{width:100%; display:block; border-radius:5px; aspect-ratio:1/1; object-fit:cover;}
+  .frame-stack .true img{outline:2px solid var(--true);}
+  .frame-stack .floor img{outline:2px solid var(--floor);}
+  .frame-stack .roll img{outline:2px solid var(--roll);}
+  .frame-label{font-family:'IBM Plex Mono', monospace; font-size:0.6rem; color:var(--text-mute); margin-bottom:2px;}
+
+  .legend-row{
+    display:flex; gap:22px; flex-wrap:wrap; margin-bottom:22px;
+    font-family:'IBM Plex Mono', monospace; font-size:0.76rem; color:var(--text-dim);
+  }
+  .legend-row span{display:inline-flex; align-items:center; gap:7px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+
+  footer{margin-top:10px; padding-top:22px; border-top:1px solid var(--border); font-size:0.82rem; color:var(--text-mute); line-height:1.6;}
+  footer code{font-family:'IBM Plex Mono', monospace; background:var(--grid); padding:1px 5px; border-radius:4px; font-size:0.85em;}
+
+  @media (max-width:640px){
+    .charts{grid-template-columns:1fr;}
+  }
+</style>
+
+<div class="wrap">
+
+  <p class="kicker">A diagnostic protocol for latent-only world models</p>
+  <h1>Horizon Ladder</h1>
+
+  <div class="section">
+    <h2>Research gap</h2>
+    <p>
+      Rolling a frozen state predictor forward produces a latent for a future that never happened, so there's
+      no real image to check it against. Nobody has separated how wrong the <b>dynamics</b> are from how wrong
+      the <b>decoder</b> is along that horizon, nobody has checked whether a decoder stays faithful to
+      counterfactual action differences, and nobody has measured how a single decode error compounds when it's
+      re-injected into the rollout. This run targets the first of those three.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>What this is doing</h2>
+    <p>
+      A frozen <b>V-JEPA2 ViT-L</b> encoder and predictor &mdash; genuinely latent-only, no built-in pixel
+      decoder &mdash; is queried on real <b>Something-Something v2</b> clips: given only frames up to time t,
+      predict the tubelet at t+k, for k = 2, 4, 8, 16, 32 frames out. A small, deliberately low-capacity
+      decoder (trained only on real frames, never on rollouts) turns each predicted latent back into pixels,
+      so it can be compared against the real future frame directly.
+    </p>
+    <p>
+      Caveat that shapes every number below: this predictor was pretrained to fill in masked patches of an
+      already-fully-observed clip, never to predict a genuinely unseen future from a causal past. Querying it
+      that way is possible but untested by its own authors &mdash; so this measures the frozen model under an
+      out-of-distribution query, not a clean read of its forward dynamics.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Outputs</h2>
+
+    <div class="stats-line">
+      <span class="k">floor</span> 0.1796 &nbsp;&middot;&nbsp;
+      <span class="k">clips</span> 11 usable of 20 &nbsp;&middot;&nbsp;
+      <span class="k">horizons</span> 2, 4, 8, 16, 32 &nbsp;&middot;&nbsp;
+      <span class="k">fit residual @k=32</span> +0.0099
+    </div>
+
+    <div class="charts">
+      <div>
+        <div class="chart-title">latent_drift vs horizon</div>
+        <div class="chart-sub">distance(predicted_latent[k], encode(true_frame)), per clip</div>
+        <svg id="chart-latent" viewBox="0 0 400 240" width="100%"></svg>
+        <div class="chart-legend">
+          <span><span class="lg-line" style="background:var(--latent)"></span>mean, 11 clips</span>
+          <span><span class="lg-line" style="background:var(--text-mute);opacity:.5"></span>individual clip</span>
+        </div>
+      </div>
+      <div>
+        <div class="chart-title">pixel_error vs horizon</div>
+        <div class="chart-sub">distance(decode(predicted_latent[k]), true_frame); dashed = floor</div>
+        <svg id="chart-pixel" viewBox="0 0 400 240" width="100%"></svg>
+        <div class="chart-legend">
+          <span><span class="lg-line" style="background:var(--pixel)"></span>mean, 11 clips</span>
+          <span><span class="lg-line" style="background:var(--text-mute);opacity:.5"></span>individual clip</span>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-family:'IBM Plex Mono', monospace; font-size:0.82rem; color:var(--text-dim);">
+      latent_drift moves ~2% from k=2 to k=32; pixel_error moves non-monotonically by ~13% (peaks at k=16).
+    </p>
+
+    <table>
+      <thead><tr><th>k</th><th>latent_drift</th><th>pixel_error</th><th>excess over floor</th></tr></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+
+    <h2 style="margin-top:32px;">Sample frames</h2>
+    <div class="legend-row">
+      <span><span class="dot" style="background:var(--true)"></span>true frame</span>
+      <span><span class="dot" style="background:var(--floor)"></span>encode&#8594;decode (floor)</span>
+      <span><span class="dot" style="background:var(--roll)"></span>rollout&#8594;decode</span>
+    </div>
+    <div id="frame-blocks"></div>
+  </div>
+
+  <footer>
+    Raw data: <code>stage_d_results.csv</code> (55 rows) &middot; <code>floor.json</code>. Decoder is a single
+    per-token linear layer, no perceptual or adversarial loss.
+  </footer>
+
+</div>
+
+<script>
+const K = [2,4,8,16,32];
+const RUNS = {
+  "105489": {ld:[1370.27,1405.71,1340.76,1342.99,1370.75], pe:[0.2087,0.2126,0.2093,0.2075,0.2098]},
+  "105545": {ld:[1338.11,1394.24,1379.17,1429.65,1364.68], pe:[0.1304,0.1335,0.1615,0.2324,0.1452]},
+  "10564":  {ld:[1400.87,1410.06,1401.51,1413.64,1420.09], pe:[0.2821,0.2878,0.2947,0.2960,0.2844]},
+  "105746": {ld:[1430.44,1381.71,1413.85,1412.57,1362.64], pe:[0.2373,0.2377,0.2453,0.2744,0.2521]},
+  "105928": {ld:[1310.86,1309.40,1293.12,1320.23,1338.79], pe:[0.2690,0.2694,0.2709,0.2372,0.2401]},
+  "105948": {ld:[1323.92,1320.43,1341.52,1371.04,1355.02], pe:[0.2647,0.2679,0.2749,0.2947,0.2748]},
+  "106011": {ld:[1299.10,1304.87,1333.71,1323.70,1377.49], pe:[0.2593,0.2804,0.2718,0.2845,0.2748]},
+  "106041": {ld:[1299.53,1355.83,1294.47,1290.95,1339.12], pe:[0.2135,0.2146,0.2380,0.2654,0.2101]},
+  "106046": {ld:[1285.50,1299.48,1389.96,1324.12,1359.52], pe:[0.2139,0.2237,0.2755,0.2742,0.3037]},
+  "106065": {ld:[1308.16,1328.03,1324.88,1314.33,1345.35], pe:[0.1949,0.1943,0.1927,0.1958,0.1910]},
+};
+const FLOOR = 0.1796;
+
+function mean(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
+
+function drawChart(svgId, key, opts){
+  const svg = document.getElementById(svgId);
+  const W = 400, H = 240;
+  const padL = 44, padR = 14, padT = 14, padB = 30;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+
+  const clipIds = Object.keys(RUNS);
+  const allVals = clipIds.flatMap(c => RUNS[c][key]);
+  let yMax = Math.max(...allVals, opts.floor || 0) * 1.12;
+  let yMin = 0;
+
+  const x = i => padL + (i/(K.length-1)) * plotW;
+  const y = v => padT + plotH - ((v - yMin)/(yMax - yMin)) * plotH;
+
+  let svgContent = '';
+
+  const gridN = 4;
+  for(let g=0; g<=gridN; g++){
+    const gy = padT + (g/gridN)*plotH;
+    const val = yMax - (g/gridN)*(yMax-yMin);
+    svgContent += `<line x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}" stroke="var(--grid)" stroke-width="1"/>`;
+    svgContent += `<text x="${padL-8}" y="${gy+3}" font-size="8" text-anchor="end">${opts.fmt(val)}</text>`;
+  }
+
+  if(opts.floor){
+    const fy = y(opts.floor);
+    svgContent += `<line x1="${padL}" y1="${fy}" x2="${W-padR}" y2="${fy}" stroke="var(--text-mute)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  }
+
+  K.forEach((k,i) => {
+    svgContent += `<text x="${x(i)}" y="${H-8}" font-size="8" text-anchor="middle">${k}</text>`;
+  });
+  svgContent += `<text x="${padL+plotW/2}" y="${H-1}" font-size="7.5" text-anchor="middle" opacity="0.7">horizon k (frames)</text>`;
+
+  clipIds.forEach(clipId => {
+    const vals = RUNS[clipId][key];
+    const pts = vals.map((v,i) => `${x(i)},${y(v)}`).join(' ');
+    svgContent += `<polyline points="${pts}" fill="none" stroke="var(--text-mute)" stroke-width="1.25" opacity="0.4"/>`;
+  });
+
+  const meanVals = K.map((_,i) => mean(clipIds.map(c => RUNS[c][key][i])));
+  const meanPts = meanVals.map((v,i) => `${x(i)},${y(v)}`).join(' ');
+  svgContent += `<polyline points="${meanPts}" fill="none" stroke="var(${opts.color})" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  meanVals.forEach((v,i) => {
+    svgContent += `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="var(${opts.color})" stroke="var(--bg)" stroke-width="1.5"><title>k=${K[i]}: mean ${v.toFixed(opts.decimals)}</title></circle>`;
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+drawChart('chart-latent', 'ld', {color:'--latent', decimals:1, fmt:v=>Math.round(v)});
+drawChart('chart-pixel', 'pe', {color:'--pixel', decimals:4, floor:FLOOR, fmt:v=>v.toFixed(2)});
+
+const tbody = document.getElementById('table-body');
+tbody.innerHTML = K.map((k,i) => {
+  const ld = mean(Object.values(RUNS).map(r => r.ld[i]));
+  const pe = mean(Object.values(RUNS).map(r => r.pe[i]));
+  return `<tr><td>${k}</td><td>${ld.toFixed(2)}</td><td>${pe.toFixed(4)}</td><td>${(pe-FLOOR).toFixed(4)}</td></tr>`;
+}).join('');
+
+const FRAME_CLIPS = ["105489", "10564", "105928", "106046"];
+const FRAME_KS = [2, 8, 32];
+document.getElementById('frame-blocks').innerHTML = FRAME_CLIPS.map(clip => `
+  <div class="clip-block">
+    <div class="clip-id">clip ${clip} <span>&middot; t=8</span></div>
+    <div class="horizon-row">
+      ${FRAME_KS.map(k => `
+        <div class="horizon-col">
+          <div class="k-label">k=${k}</div>
+          <div class="frame-stack">
+            <div class="true"><div class="frame-label">true</div><img src="${clip}_t8_k${k}_true.png"></div>
+            <div class="floor"><div class="frame-label">floor</div><img src="${clip}_t8_k${k}_floor_recon.png"></div>
+            <div class="roll"><div class="frame-label">rollout</div><img src="${clip}_t8_k${k}_rollout_decode.png"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+`).join('');
+</script>
