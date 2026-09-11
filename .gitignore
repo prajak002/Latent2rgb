@@ -14,3 +14,5 @@ outputs/runner.log
 *.tmp.png
 .DS_Store
 .claude/
+.vercel
+.env*
