@@ -42,12 +42,33 @@ or see `outputs/dashboard.html`.
    metric ported from ecological crash detection, EBID) against real pixel
    divergence on real clips, alongside the raw latent-drift baseline
    already established in Stage D:
-   - **Weak, not-significant correlation.** The best candidate (normalized
-     L2) reaches Pearson r = 0.12 against `pixel_error`; raw latent drift
-     itself reaches r = 0.013 (Experiment 1). Cluster-bootstrapped 95% CIs
-     (resampled by clip, n=24, `outputs/stats_significance.json`) include
-     zero for **all six candidates** — none is statistically distinguishable
-     from no relationship at this sample size, let alone practically usable.
+   - **Weak, not-significant correlation — honestly bounded.** The best
+     candidate (normalized L2) reaches Pearson r = 0.12 against
+     `pixel_error`; raw latent drift itself reaches r = 0.013 (Experiment
+     1). Cluster-bootstrapped 95% CIs (resampled by clip, n=24,
+     `outputs/stats_significance.json`) include zero for all six
+     candidates, but at n=24 that alone only has ~80% power to detect
+     |r|≈0.55 — so "CI includes zero" doesn't by itself rule out a
+     moderate relationship. The CI upper bounds do the honest bounding:
+     they range from ~0.12 (Mahalanobis, the tightest) to ~0.50 (ensemble
+     variance, the loosest) — read per-candidate, not as one number.
+   - **A second, power-independent check confirms it: conformal
+     efficiency.** Correlation-test power is a real limitation at n=24, so
+     `scripts/conformal_calibration.py` asks a differently-shaped question
+     that isn't power-starved the same way: does conditioning a prediction
+     interval for `pixel_error` on the candidate metric make that interval
+     *narrower* than a proxy-free baseline that ignores the metric and
+     predicts the marginal mean? Using CV+ (Barber et al. 2021,
+     leave-one-clip-out folds, not literal functional conformal prediction
+     — that's for curve-valued data, this is scalar per (clip, k), citing
+     it here would overstate the connection to Foresight, arXiv
+     2606.23085) at nominal 90% coverage (empirical: baseline 90.8%,
+     guaranteed floor 80%): five of six candidates produce intervals
+     *wider* than the proxy-free baseline (+0.1% to +4.9%); the sixth
+     (normalized L2) is 1.3% narrower — noise, not a usable signal. None
+     of the six make the interval tighter. This doesn't depend on
+     detecting a correlation at all, so it isn't subject to the same
+     power caveat as the bullet above.
    - **No early warning.** Of 8 real crashes (excess-over-floor over
      threshold) across 24 clips, the entropy-rate metric gave lead-time
      warning on zero of them (Experiment 3); Wilson 95% CI on that rate is
@@ -97,11 +118,21 @@ or see `outputs/dashboard.html`.
    - `latent_drift` moves by 34% across k=2→32 (vs. V-JEPA2's ~2%); the
      separation-statistic residual — how much `pixel_error` exceeds what a
      low-horizon fit of `latent_drift` predicts — shrinks about 30x (0.0004
-     vs. V-JEPA2's 0.0099). Here the direction inverts: latent space moves
-     *more* than pixel space, not less (`stage_d_results_second_family.csv`).
+     vs. V-JEPA2's 0.0099). The direction inverts: latent space moves
+     *more* than pixel space here, not less
+     (`stage_d_results_second_family.csv`). This isn't a single noisy point
+     estimate — it's bootstrap-checked: the divergence-ratio's 95% CI is
+     [2.0, 14.0] on V-JEPA2 and [0.20, 0.41] on the second family (clip-level
+     resampling, `scripts/conformal_calibration.py`'s sibling check in
+     `stats_significance.py`'s style) — the two intervals don't overlap,
+     and 100%/99.97% of resamples land on opposite sides of ratio=1. The
+     direction difference is real, not noise, even though each individual
+     r estimate below is not.
    - Candidate-proxy correlations are higher (best r = 0.39, cosine
      distance, vs. 0.12) but at only 10 clips, none clear a 95% CI either
-     (`outputs/experiment1_second_family_stats.json`).
+     (`outputs/experiment1_second_family_stats.json`) — read this bullet
+     as suggestive, not established; the range-ratio bullet above it is
+     the one with the bootstrap behind it.
    - Reading: a predictor trained end-to-end against the very tokens being
      measured naturally keeps latent and pixel error coupled. The gap this
      protocol exists to catch is sharpest exactly where deployment risk is
@@ -209,12 +240,32 @@ disjoint datasets (Something-Something v2 and Kinetics-mini):
   gap hold for latent-only video world models in general." Confirming that
   broader claim still needs an independently-pretrained second SOTA model,
   which this project's disk/time budget didn't allow for.
-- **Sample sizes are small.** 10–26 clips depending on the experiment (see
+- **Sample sizes are small, and "CI includes zero" is not by itself strong
+  evidence at n=24.** 10–26 clips depending on the experiment (see
   `outputs/stats_significance.json` and `experiment1_second_family_stats.json`
-  for the bootstrap confidence intervals behind every headline correlation
-  and slope). Point estimates are reported alongside their CIs throughout
-  Contribution and Status specifically so they aren't read as more certain
-  than the sample size supports.
+  for the bootstrap CIs behind every headline correlation and slope). At
+  n=24, a correlation test has ~80% power only for |r|≈0.55 or larger — a
+  CI including zero doesn't rule out a moderate relationship the study is
+  underpowered to detect. Two things mitigate this rather than paper over
+  it: (1) CI *upper bounds* are reported per-candidate rather than
+  collapsed into one blanket "not significant" claim (see Contribution
+  #2), and (2) `scripts/conformal_calibration.py` adds a differently-shaped,
+  non-power-dependent check (conformal interval efficiency vs. a
+  proxy-free baseline) that corroborates the same conclusion through a
+  mechanism unaffected by this specific power limitation.
+- **If Experiments 1/3/4/6 or the second-family check are ever extended to
+  a from-scratch-trained architecture like LeWorldModel (arXiv
+  2603.19312):** that model is action-conditioned; SSv2 and Kinetics-mini
+  have no action labels. Training it here would produce an *action-free
+  LeWM-style JEPA*, not a reimplementation of LeWorldModel, and should be
+  named that way rather than claimed as a faithful reproduction. It would
+  also need its own training-loss and decoder-sanity numbers reported
+  alongside any coupling result, the same way `floor_dinov2.json` reports
+  the current second family's floor — a small model trained from scratch
+  on ~26 clips can fail to couple latent and pixel error simply from being
+  undertrained, which would be indistinguishable from a genuine finding
+  without that check. Noted here as a constraint on future work, not
+  something already built.
 
 ## Code map
 
@@ -263,6 +314,7 @@ dataset:
 | `scripts/dump_rollout_metrics.py` | writes per-clip latent_drift/pixel_error for the gallery's video pairs |
 | `scripts/live_dashboard_runner.py` | runs Stage D live across both datasets, feeds `outputs/dashboard.html` |
 | `scripts/stats_significance.py` | cluster-bootstrap 95% CIs on Stage D / Experiments 1, 4 and Wilson CI on Experiment 3 |
+| `scripts/conformal_calibration.py` | CV+ conformal interval efficiency vs. a proxy-free baseline, Experiment 1 |
 | `scripts/train_second_family.py` | trains the DINOv2 predictor + decoder (second model family) |
 | `scripts/pilot_second_family.py` | D equivalent, second family |
 | `scripts/experiment1_second_family.py` | 1 equivalent, second family |
@@ -297,6 +349,7 @@ python scripts/experiment4_sweep.py              # writes outputs/experiment4_{r
 python scripts/experiment5_interactions.py       # writes outputs/experiment5_summary.json
 python scripts/experiment6_transitivity.py       # writes outputs/experiment6_summary.json
 python scripts/stats_significance.py             # writes outputs/stats_significance.json (bootstrap CIs)
+python scripts/conformal_calibration.py           # writes outputs/conformal_calibration.json
 
 python scripts/train_second_family.py       # writes predictor_dinov2.pt, decoder_dinov2.pt, floor_dinov2.json
 python scripts/pilot_second_family.py       # writes stage_d_results_second_family.csv

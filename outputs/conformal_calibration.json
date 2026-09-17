@@ -1,0 +1,73 @@
+{
+  "proxy_free_baseline": {
+    "mean_width": 0.3009772635024527,
+    "coverage": 0.9083333333333333,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8
+  },
+  "latent_l2_drift": {
+    "mean_width": 0.3121055247832951,
+    "coverage": 0.9166666666666666,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8,
+    "width_vs_baseline_pct": 3.697376058026306
+  },
+  "cosine_distance": {
+    "mean_width": 0.30114365711051677,
+    "coverage": 0.925,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8,
+    "width_vs_baseline_pct": 0.05528444445529688
+  },
+  "normalized_l2": {
+    "mean_width": 0.2971560841609936,
+    "coverage": 0.925,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8,
+    "width_vs_baseline_pct": -1.26959069831132
+  },
+  "ensemble_variance": {
+    "mean_width": 0.31560681473821506,
+    "coverage": 0.9666666666666667,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8,
+    "width_vs_baseline_pct": 4.860683184343975
+  },
+  "effective_rank": {
+    "mean_width": 0.3087935538008227,
+    "coverage": 0.925,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8,
+    "width_vs_baseline_pct": 2.5969703516512648
+  },
+  "mahalanobis": {
+    "mean_width": 0.30296962906925834,
+    "coverage": 0.9166666666666666,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8,
+    "width_vs_baseline_pct": 0.6619654732788206
+  },
+  "ebid_entropy": {
+    "mean_width": 0.30876244034425526,
+    "coverage": 0.925,
+    "n": 120,
+    "n_groups": 24,
+    "alpha": 0.1,
+    "guaranteed_coverage_floor": 0.8,
+    "width_vs_baseline_pct": 2.586632874259997
+  }
+}
