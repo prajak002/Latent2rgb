@@ -1,0 +1,100 @@
+{
+  "t": 8,
+  "k_reinject": 8,
+  "j_values": [
+    2,
+    4,
+    6,
+    8,
+    12,
+    16,
+    24,
+    32
+  ],
+  "epsilons": [
+    0.0,
+    0.05,
+    0.1,
+    0.2,
+    0.4,
+    0.8
+  ],
+  "modes": [
+    "pure",
+    "corrected"
+  ],
+  "mean_by_mode_epsilon": [
+    {
+      "mode": "corrected",
+      "epsilon": 0.0,
+      "entropy": 2.1729014315284214,
+      "pixel_error": 0.278591837375783
+    },
+    {
+      "mode": "corrected",
+      "epsilon": 0.05,
+      "entropy": 2.172335241849606,
+      "pixel_error": 0.27858113332723194
+    },
+    {
+      "mode": "corrected",
+      "epsilon": 0.1,
+      "entropy": 2.1721936613321304,
+      "pixel_error": 0.2787392635901387
+    },
+    {
+      "mode": "corrected",
+      "epsilon": 0.2,
+      "entropy": 2.1751784355594563,
+      "pixel_error": 0.27863894754017776
+    },
+    {
+      "mode": "corrected",
+      "epsilon": 0.4,
+      "entropy": 2.1783056058562718,
+      "pixel_error": 0.27872218284755945
+    },
+    {
+      "mode": "corrected",
+      "epsilon": 0.8,
+      "entropy": 2.1781728078539553,
+      "pixel_error": 0.2784642457532195
+    },
+    {
+      "mode": "pure",
+      "epsilon": 0.0,
+      "entropy": 2.127555374342662,
+      "pixel_error": 0.282138992459155
+    },
+    {
+      "mode": "pure",
+      "epsilon": 0.05,
+      "entropy": 2.127566890647778,
+      "pixel_error": 0.28213551002912796
+    },
+    {
+      "mode": "pure",
+      "epsilon": 0.1,
+      "entropy": 2.1277034632288494,
+      "pixel_error": 0.2821630220143841
+    },
+    {
+      "mode": "pure",
+      "epsilon": 0.2,
+      "entropy": 2.126962903027351,
+      "pixel_error": 0.2821513798374396
+    },
+    {
+      "mode": "pure",
+      "epsilon": 0.4,
+      "entropy": 2.126353068993642,
+      "pixel_error": 0.2822193276996796
+    },
+    {
+      "mode": "pure",
+      "epsilon": 0.8,
+      "entropy": 2.123141144330685,
+      "pixel_error": 0.282491990006887
+    }
+  ]
+}

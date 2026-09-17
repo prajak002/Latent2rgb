@@ -1,0 +1,60 @@
+{
+  "n_conditions": 96,
+  "n_clips": 26,
+  "n_decided_pairs": 4026,
+  "n_3cycles_found": 10,
+  "example_3cycles": [
+    [
+      "('corrected', 0.0, 2)",
+      "('corrected', 0.0, 12)",
+      "('corrected', 0.8, 2)"
+    ],
+    [
+      "('corrected', 0.2, 12)",
+      "('corrected', 0.0, 24)",
+      "('corrected', 0.0, 2)"
+    ],
+    [
+      "('corrected', 0.8, 16)",
+      "('corrected', 0.0, 24)",
+      "('corrected', 0.0, 2)"
+    ],
+    [
+      "('corrected', 0.0, 2)",
+      "('corrected', 0.05, 12)",
+      "('corrected', 0.8, 2)"
+    ],
+    [
+      "('corrected', 0.2, 12)",
+      "('corrected', 0.05, 24)",
+      "('corrected', 0.0, 2)"
+    ],
+    [
+      "('corrected', 0.8, 16)",
+      "('corrected', 0.05, 24)",
+      "('corrected', 0.0, 2)"
+    ],
+    [
+      "('corrected', 0.0, 2)",
+      "('corrected', 0.1, 8)",
+      "('corrected', 0.1, 24)"
+    ],
+    [
+      "('corrected', 0.0, 2)",
+      "('corrected', 0.1, 8)",
+      "('corrected', 0.2, 24)"
+    ],
+    [
+      "('corrected', 0.0, 2)",
+      "('corrected', 0.1, 12)",
+      "('corrected', 0.8, 2)"
+    ],
+    [
+      "('corrected', 0.8, 16)",
+      "('corrected', 0.1, 24)",
+      "('corrected', 0.0, 2)"
+    ]
+  ],
+  "copeland_consistent_pairs": 678,
+  "copeland_total_decided_pairs": 4026
+}
