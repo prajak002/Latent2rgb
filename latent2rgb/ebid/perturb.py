@@ -42,8 +42,14 @@ def perturb_tokens(tokens: Tensor, epsilon: float, generator: torch.Generator | 
     if epsilon <= 0:
         return tokens
     std = tokens.detach().std()
-    noise = torch.randn(tokens.shape, generator=generator, device=tokens.device, dtype=tokens.dtype) if generator is not None \
-        else torch.randn_like(tokens)
+    if generator is not None:
+        # generator device must match the tensor it draws into (MPS tensors
+        # can't take a CPU generator) -- draw on the generator's own device,
+        # then move, rather than forcing the caller to juggle devices.
+        noise = torch.randn(tokens.shape, generator=generator, device=generator.device, dtype=tokens.dtype)
+        noise = noise.to(tokens.device)
+    else:
+        noise = torch.randn_like(tokens)
     return tokens + epsilon * std * noise
 
 
