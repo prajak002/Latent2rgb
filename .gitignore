@@ -9,6 +9,12 @@ floor_dinov2.json
 decoder_dinov2.pt
 predictor_dinov2.pt
 stage_d_results_second_family.csv
+floor_lewm.json
+decoder_lewm.pt
+lewm_encoder.pt
+lewm_encoder_vit.pt
+lewm_predictor.pt
+stage_d_results_lewm_family.csv
 data/
 checkpoints/
 vendor/

@@ -103,43 +103,69 @@ or see `outputs/dashboard.html`.
    latent-space threshold generalizes (Experiment 1): the clips a
    threshold would need to separate sit on both sides of it.
 
-4. **A second, differently-architected predictor — and the gap changes
-   shape, not just magnitude.** V-JEPA2's predictor is frozen, pretrained
+4. **Two more, differently-trained predictors — and they agree with each
+   other, not with V-JEPA2.** V-JEPA2's predictor is frozen, pretrained
    elsewhere, and queried causally out-of-distribution (see Status). To
    test whether the measurement gap is a property of *that regime* or of
    latent-only prediction generally, the identical protocol was run
-   against a second family: a frozen, independently-pretrained DINOv2
-   image encoder paired with a small predictor trained here, from scratch,
-   by gradient descent on the same clips (`latent2rgb/dinov2_adapter.py`,
-   `delta_predictor.py`, `scripts/train_second_family.py` —
-   see Limitations for exactly what this is and isn't evidence for). The
-   result is not "the gap disappears" — it's a different, informative
-   shape:
-   - `latent_drift` moves by 34% across k=2→32 (vs. V-JEPA2's ~2%); the
-     separation-statistic residual — how much `pixel_error` exceeds what a
-     low-horizon fit of `latent_drift` predicts — shrinks about 30x (0.0004
-     vs. V-JEPA2's 0.0099). The direction inverts: latent space moves
-     *more* than pixel space here, not less
-     (`stage_d_results_second_family.csv`). This isn't a single noisy point
-     estimate — it's bootstrap-checked: the divergence-ratio's 95% CI is
-     [2.0, 14.0] on V-JEPA2 and [0.20, 0.41] on the second family (clip-level
-     resampling, `scripts/conformal_calibration.py`'s sibling check in
-     `stats_significance.py`'s style) — the two intervals don't overlap,
-     and 100%/99.97% of resamples land on opposite sides of ratio=1. The
-     direction difference is real, not noise, even though each individual
-     r estimate below is not.
-   - Candidate-proxy correlations are higher (best r = 0.39, cosine
-     distance, vs. 0.12) but at only 10 clips, none clear a 95% CI either
-     (`outputs/experiment1_second_family_stats.json`) — read this bullet
-     as suggestive, not established; the range-ratio bullet above it is
-     the one with the bootstrap behind it.
-   - Reading: a predictor trained end-to-end against the very tokens being
-     measured naturally keeps latent and pixel error coupled. The gap this
-     protocol exists to catch is sharpest exactly where deployment risk is
-     highest — a frozen, pretrained-elsewhere model queried off-distribution
-     — not a fixed property of "latent-only prediction" as a category. That
-     refinement is itself only visible because a second architecture was
-     run through the same protocol.
+   against two more families, differing from V-JEPA2 (and from each
+   other) in what's frozen vs. trained and in encoder architecture:
+   - **Family B**: a frozen, independently-pretrained DINOv2 image
+     encoder paired with a small MLP predictor trained here by gradient
+     descent (`latent2rgb/dinov2_adapter.py`, `delta_predictor.py`,
+     `scripts/train_second_family.py`).
+   - **Family C**: an action-free variant of LeWorldModel (Maes, Le Lidec,
+     Scieur, LeCun, Balestriero, arXiv 2603.19312) — encoder *and*
+     predictor trained jointly, end-to-end, from raw pixels, with no
+     pretrained representation at all (a ViT-Tiny encoder + a causal
+     transformer predictor + a SIGReg anti-collapse regularizer,
+     `latent2rgb/lewm_adapter.py`, `lewm_predictor.py`,
+     `scripts/train_lewm_family.py`). See Limitations for exactly what
+     "action-free" changes and what this is/isn't evidence for.
+
+   Neither result is "the gap disappears" — both are a different,
+   informative shape, and the two agree with each other on the part that
+   matters most:
+   - **Direction inverts on both, and it's bootstrap-confirmed on both.**
+     `latent_drift` moves far more than `pixel_error` on both trained
+     families (Family B: 34% vs. 10% range across k=2→32; Family C: 66%
+     vs. 4%) — the opposite of V-JEPA2 (~2% vs. ~12%). The divergence-ratio
+     95% CIs (clip-level bootstrap): **[2.0, 14.0]** on V-JEPA2, **[0.20,
+     0.41]** on Family B, **[0.026, 0.131]** on Family C. All three
+     intervals are disjoint from each other and from 1.0; 100% (Family C)
+     and 99.97% (V-JEPA2) of resamples land on the predicted side. Two
+     independently-built, differently-trained predictors landing on the
+     *same* side against V-JEPA2's frozen-OOD result is a real pattern,
+     not a coincidence of one run
+     (`stage_d_results_second_family.csv`, `stage_d_results_lewm_family.csv`).
+   - **Separation-statistic residuals don't move together, though.**
+     Family B's residual is ~30x smaller than V-JEPA2's (0.0004 vs.
+     0.0099) — pixel_error is almost fully explained by the low-k
+     latent_drift trend. Family C's residual (0.0131) is close to
+     V-JEPA2's, *despite* sharing Family B's "latent moves more"
+     direction — so residual size and divergence direction aren't the
+     same axis; a proxy that looked safe on Family B's residual wouldn't
+     have been safe on Family C's.
+   - **Candidate-proxy correlations stay weak on Family C, unlike Family
+     B.** Best |r| = 0.20 (ensemble variance, negative sign) at n=9 clips
+     — closer to V-JEPA2's weak correlations than to Family B's elevated
+     (if still not significant) r=0.39.
+     (`outputs/experiment1_lewm_family_summary.json`)
+   - **Collapse checked, not assumed.** Family C's encoder is trained
+     from scratch — SIGReg exists specifically to stop it collapsing to a
+     constant output, and a collapsed encoder would trivially minimize
+     prediction loss too, which would look identical to "good coupling"
+     in the numbers above. Checked directly: per-dimension embedding std
+     ≈ 1.0 across all 192 dims (range 0.83–1.20) on 50 held-out tubelets
+     from 10 different clips — matching SIGReg's isotropic-Gaussian
+     target, not a collapsed one.
+   - Reading: direction of divergence tracks *how the predictor relates
+     to its query* — frozen-and-queried-out-of-distribution (V-JEPA2)
+     vs. trained-toward-what's-being-measured (Families B and C) — not a
+     fixed property of any one architecture. That's a more specific,
+     better-supported claim than "the gap is V-JEPA2-specific," and it's
+     only visible because two, not one, differently-built second families
+     were run through the same protocol.
 
 ## Protocol (adopt this)
 
@@ -203,14 +229,17 @@ disjoint datasets (Something-Something v2 and Kinetics-mini):
   crashes, flip sign under an unrelated pipeline choice, and produce a
   pairwise condition ranking that is mostly intransitive (17%
   Copeland-consistent, 10 explicit 3-cycles).
-- **Second model family (DINOv2 + a predictor trained here).** See
-  Contribution #4 and Limitations. The same protocol run against a
-  differently-architected, differently-trained predictor does *not*
-  reproduce the same gap shape: latent and pixel error stay more coupled
-  (separation residual ~30x smaller), and the divergence direction
-  inverts. Read as evidence the gap tracks *frozen, off-distribution
-  querying*, not latent-only prediction as a category — not as evidence
-  about DINOv2, or about video world models beyond V-JEPA2, generally.
+- **Two more model families (DINOv2+trained-MLP, and an action-free
+  LeWM-style JEPA trained end-to-end from scratch).** See Contribution #4
+  and Limitations. Neither reproduces V-JEPA2's gap shape, and — more
+  informatively — they agree with *each other*: on both, `latent_drift`
+  moves far more than `pixel_error` (the opposite of V-JEPA2), confirmed
+  by non-overlapping bootstrap CIs on the divergence ratio across all
+  three families. Read as evidence the gap's *direction* tracks
+  frozen/off-distribution querying vs. trained-toward-the-query, not
+  latent-only prediction as a category, and not as evidence about DINOv2
+  or LeWorldModel specifically, or about video world models beyond
+  V-JEPA2, generally.
 - **Not run:** counterfactual faithfulness (rolling one state under two
   different actions). Needs V-JEPA2-AC plus a real action-conditioned
   (robot-trajectory) dataset; both are far outside this project's disk
@@ -229,17 +258,24 @@ disjoint datasets (Something-Something v2 and Kinetics-mini):
   are well outside what fits here (see Status). Treat this as a stated
   scope boundary, not an oversight: the faithfulness question is real and
   remains open.
-- **The second model family is a lightweight stand-in, not a second SOTA
-  world model.** DINOv2 was never pretrained for temporal dynamics; the
-  temporal fusion (mean-pooling a tubelet's two frames) and the predictor
-  (`delta_predictor.py`, a small MLP) are both built for this repo, trained
-  on ~26 clips for 40 epochs — not independently pretrained, not
-  state-of-the-art, not a research contribution in themselves. Its result
-  (Contribution #4) answers "does the gap reproduce on a differently
-  architected, differently trained latent-only predictor," not "does the
-  gap hold for latent-only video world models in general." Confirming that
-  broader claim still needs an independently-pretrained second SOTA model,
-  which this project's disk/time budget didn't allow for.
+- **Both extra model families are lightweight stand-ins, not second SOTA
+  world models.** DINOv2 (Family B) was never pretrained for temporal
+  dynamics; its predictor (`delta_predictor.py`, a small MLP) is built for
+  this repo, trained on ~26 clips for 40 epochs. LeWM-style (Family C) is
+  an *action-free variant* of LeWorldModel, not a reimplementation —
+  SSv2/Kinetics-mini carry no action labels, so the paper's AdaLN action
+  pathway is simply absent; call it that, not "LeWM." It's also trained at
+  a much smaller scale than the paper (batch size 16 vs. the paper's 128 —
+  SIGReg's per-batch normality estimate is noisier at this scale, though
+  the direct collapse check in Contribution #4 passed; 300 steps on ~26
+  clips vs. 10 epochs on 10,000-episode datasets in the paper). Neither
+  family is independently pretrained, state-of-the-art, or a research
+  contribution in themselves. Their result (Contribution #4) answers "does
+  the gap reproduce on differently architected, differently trained
+  latent-only predictors," not "does the gap hold for latent-only video
+  world models in general." Confirming that broader claim still needs an
+  independently-pretrained SOTA model at real scale, which this project's
+  disk/time budget didn't allow for.
 - **Sample sizes are small, and "CI includes zero" is not by itself strong
   evidence at n=24.** 10–26 clips depending on the experiment (see
   `outputs/stats_significance.json` and `experiment1_second_family_stats.json`
@@ -253,19 +289,13 @@ disjoint datasets (Something-Something v2 and Kinetics-mini):
   non-power-dependent check (conformal interval efficiency vs. a
   proxy-free baseline) that corroborates the same conclusion through a
   mechanism unaffected by this specific power limitation.
-- **If Experiments 1/3/4/6 or the second-family check are ever extended to
-  a from-scratch-trained architecture like LeWorldModel (arXiv
-  2603.19312):** that model is action-conditioned; SSv2 and Kinetics-mini
-  have no action labels. Training it here would produce an *action-free
-  LeWM-style JEPA*, not a reimplementation of LeWorldModel, and should be
-  named that way rather than claimed as a faithful reproduction. It would
-  also need its own training-loss and decoder-sanity numbers reported
-  alongside any coupling result, the same way `floor_dinov2.json` reports
-  the current second family's floor — a small model trained from scratch
-  on ~26 clips can fail to couple latent and pixel error simply from being
-  undertrained, which would be indistinguishable from a genuine finding
-  without that check. Noted here as a constraint on future work, not
-  something already built.
+- **Only Stage D and Experiment 1 were run on the two extra families, not
+  the full battery.** Experiments 3 (lead-time), 4/5 (sign-stability), and
+  6 (transitivity) only ran against V-JEPA2. The n=9–10 clips available
+  per extra family are too few for Experiment 6's pairwise-ranking design
+  in particular (V-JEPA2's version used 26 clips for 4,026 pairs). Whether
+  the sign-flip and intransitivity findings also hold on Families B/C is
+  untested, not confirmed.
 
 ## Code map
 
@@ -294,6 +324,15 @@ dataset:
   `vjepa_adapter.py`; see Contribution #4 and Limitations
 - `latent2rgb/delta_predictor.py` — the second family's `StatePredictor`:
   a small MLP trained here (DINOv2 ships no predictor at all)
+- `latent2rgb/lewm_adapter.py` — the third family's `Encoder`: a ViT-Tiny
+  trained from scratch (no pretraining at all), per an action-free variant
+  of LeWorldModel (arXiv 2603.19312); `tokens_per_tubelet=1` (one global
+  embedding per tubelet, not a patch grid) — a real architectural
+  difference from the other two adapters, not a bug
+- `latent2rgb/lewm_predictor.py` — the third family's `StatePredictor`: a
+  causal transformer trained jointly with the encoder, plus the SIGReg
+  anti-collapse regularizer (Eq. EP/SIGReg in the paper, implemented
+  exactly against the paper's formula)
 
 ## Scripts
 
@@ -318,6 +357,9 @@ dataset:
 | `scripts/train_second_family.py` | trains the DINOv2 predictor + decoder (second model family) |
 | `scripts/pilot_second_family.py` | D equivalent, second family |
 | `scripts/experiment1_second_family.py` | 1 equivalent, second family |
+| `scripts/train_lewm_family.py` | trains the action-free LeWM-style encoder+predictor+decoder jointly, from scratch (third model family) |
+| `scripts/pilot_lewm_family.py` | D equivalent, third family |
+| `scripts/experiment1_lewm_family.py` | 1 equivalent, third family |
 
 ## Reproducing
 
@@ -354,6 +396,10 @@ python scripts/conformal_calibration.py           # writes outputs/conformal_cal
 python scripts/train_second_family.py       # writes predictor_dinov2.pt, decoder_dinov2.pt, floor_dinov2.json
 python scripts/pilot_second_family.py       # writes stage_d_results_second_family.csv
 python scripts/experiment1_second_family.py # writes outputs/experiment1_second_family_{results.csv,summary.json}
+
+python scripts/train_lewm_family.py         # writes lewm_encoder{,_vit}.pt, lewm_predictor.pt, decoder_lewm.pt, floor_lewm.json
+python scripts/pilot_lewm_family.py         # writes stage_d_results_lewm_family.csv
+python scripts/experiment1_lewm_family.py   # writes outputs/experiment1_lewm_family_{results.csv,summary.json}
 
 python scripts/live_dashboard_runner.py &
 python -m http.server 8090 --directory outputs
