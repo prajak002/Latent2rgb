@@ -1,0 +1,9 @@
+{
+  "crash_threshold": 0.3241036906838417,
+  "n_clips": 24,
+  "n_clips_crashed": 8,
+  "n_clips_entropy_warned": 0,
+  "n_clips_entropy_led_before_crash": 0,
+  "mean_lead": null,
+  "median_lead": null
+}
