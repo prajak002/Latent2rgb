@@ -1,0 +1,150 @@
+<meta charset="utf-8">
+<title>Horizon Ladder — Rollout Gallery</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef1f4; --text:#161b22; --text-dim:#5b6472; --text-mute:#848f9c;
+    --border:#ccd4dc; --grid:#dde3e9; --ssv2:#2a78d6; --kinetics:#1baf7a;
+    --handle:#161b22;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
+      --border:#2c3440; --grid:#252c37; --ssv2:#3987e5; --kinetics:#199e70;
+      --handle:#e7ebf0;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
+    --border:#2c3440; --grid:#252c37; --ssv2:#3987e5; --kinetics:#199e70;
+    --handle:#e7ebf0;
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--text); font-family:'IBM Plex Sans', system-ui, sans-serif; padding:0 20px; padding-block:48px 90px;}
+  .wrap{max-width:920px;margin:0 auto;}
+
+  .kicker{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); margin:0 0 14px;}
+  h1{font-family:'Instrument Serif', Georgia, serif; font-style:italic; font-weight:400; font-size:clamp(2.2rem,5.5vw,3.1rem); margin:0 0 18px; line-height:1.02;}
+  p{line-height:1.6; font-size:0.96rem; color:var(--text-dim); margin:0 0 12px; max-width:70ch;}
+  p b{color:var(--text); font-weight:600;}
+  .nav-links{font-family:'IBM Plex Mono', monospace; font-size:0.82rem; margin-bottom:28px;}
+  .nav-links a{color:var(--text-dim); text-decoration:none; border-bottom:1px dashed var(--border); margin-right:16px;}
+  .nav-links a:hover{color:var(--text);}
+
+  .card{border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:28px; background:var(--grid);}
+  .card-head{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .badge{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.04em; padding:2px 8px; border-radius:5px; color:#fff;}
+  .badge.ssv2{background:var(--ssv2);}
+  .badge.kinetics_mini{background:var(--kinetics);}
+  .clip-id{font-family:'IBM Plex Mono', monospace; font-size:0.82rem; color:var(--text-dim);}
+
+  .compare{position:relative; width:100%; aspect-ratio:16/9; border-radius:6px; overflow:hidden; background:#000; cursor:ew-resize; user-select:none;}
+  .compare video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
+  .compare .top-layer{clip-path:inset(0 50% 0 0);}
+  .compare .handle{position:absolute; top:0; bottom:0; left:50%; width:2px; background:var(--handle); transform:translateX(-1px); pointer-events:none;}
+  .compare .handle::after{content:'⇔'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--handle); color:var(--bg); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .compare .tag{position:absolute; top:8px; font-family:'IBM Plex Mono', monospace; font-size:0.68rem; letter-spacing:0.04em; text-transform:uppercase; background:rgba(0,0,0,0.55); color:#fff; padding:3px 8px; border-radius:4px; pointer-events:none;}
+  .compare .tag.left{left:8px;}
+  .compare .tag.right{right:8px;}
+
+  .sub-cap{font-family:'IBM Plex Mono', monospace; font-size:0.76rem; color:var(--text-mute); margin-top:10px;}
+  .section{border-top:1px solid var(--border); padding-block:28px;}
+</style>
+
+<div class="wrap">
+  <div class="kicker">Horizon Ladder — V-JEPA2 diagnostic</div>
+  <h1>Ground truth vs. rollout prediction</h1>
+  <p>
+    For each clip: context is the real frames up to <code>t=8</code>. Each frame in
+    these loops is a <b>separate single-shot query</b> to the frozen V-JEPA2 predictor
+    at horizon <code>k = 2, 4, 6, &hellip; 32</code> — not an autoregressive playback —
+    decoded through the minimal linear decoder. Ground truth is the real frame at that
+    same future timestamp. Drag the handle to compare.
+  </p>
+  <div class="nav-links">
+    <a href="dashboard.html">&larr; dashboard</a>
+    <a href="https://github.com/prajak002/Latent2rgb/issues/1">GitHub issue #1</a>
+    <a href="https://huggingface.co/datasets/Pras13/latent2rgb-ebid-results">HF dataset</a>
+  </div>
+
+  <div id="gallery"></div>
+</div>
+
+<script>
+const CLIPS = [
+  {
+    "dataset": "ssv2",
+    "clip_id": "128847",
+    "tag": "ssv2_128847"
+  },
+  {
+    "dataset": "ssv2",
+    "clip_id": "128893",
+    "tag": "ssv2_128893"
+  },
+  {
+    "dataset": "ssv2",
+    "clip_id": "129039",
+    "tag": "ssv2_129039"
+  },
+  {
+    "dataset": "kinetics_mini",
+    "clip_id": "train/archery/-1q7jA3DXQM_000005_000015",
+    "tag": "kinetics_mini_train_archery_-1q7jA3DXQM_000005_000015"
+  },
+  {
+    "dataset": "kinetics_mini",
+    "clip_id": "train/archery/-5NN5hdIwTc_000036_000046",
+    "tag": "kinetics_mini_train_archery_-5NN5hdIwTc_000036_000046"
+  },
+  {
+    "dataset": "kinetics_mini",
+    "clip_id": "train/archery/-GcVBfs4zw8_000007_000017",
+    "tag": "kinetics_mini_train_archery_-GcVBfs4zw8_000007_000017"
+  }
+];
+
+const gallery = document.getElementById('gallery');
+CLIPS.forEach(c => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="badge ${c.dataset}">${c.dataset}</span>
+      <span class="clip-id">${c.clip_id}</span>
+    </div>
+    <div class="compare">
+      <video class="bottom-layer" src="videos/${c.tag}_true.mp4" muted autoplay loop playsinline preload="auto"></video>
+      <video class="top-layer" src="videos/${c.tag}_rollout.mp4" muted autoplay loop playsinline preload="auto"></video>
+      <div class="tag left">ground truth</div>
+      <div class="tag right">rollout (decoded)</div>
+      <div class="handle"></div>
+    </div>
+    <div class="sub-cap">k = 2 &rarr; 32, every 2 frames, t=8 context</div>
+  `;
+  gallery.appendChild(card);
+
+  const compare = card.querySelector('.compare');
+  const topLayer = card.querySelector('.top-layer');
+  const handle = card.querySelector('.handle');
+
+  function setPos(pct){
+    pct = Math.max(0, Math.min(100, pct));
+    topLayer.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+    handle.style.left = pct + '%';
+  }
+  setPos(50);
+
+  let dragging = false;
+  function pctFromEvent(e){
+    const rect = compare.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    return (x / rect.width) * 100;
+  }
+  compare.addEventListener('pointerdown', e => { dragging = true; setPos(pctFromEvent(e)); });
+  window.addEventListener('pointermove', e => { if(dragging) setPos(pctFromEvent(e)); });
+  window.addEventListener('pointerup', () => dragging = false);
+});
+</script>

@@ -1,0 +1,32 @@
+[
+  {
+    "dataset": "ssv2",
+    "clip_id": "128847",
+    "tag": "ssv2_128847"
+  },
+  {
+    "dataset": "ssv2",
+    "clip_id": "128893",
+    "tag": "ssv2_128893"
+  },
+  {
+    "dataset": "ssv2",
+    "clip_id": "129039",
+    "tag": "ssv2_129039"
+  },
+  {
+    "dataset": "kinetics_mini",
+    "clip_id": "train/archery/-1q7jA3DXQM_000005_000015",
+    "tag": "kinetics_mini_train_archery_-1q7jA3DXQM_000005_000015"
+  },
+  {
+    "dataset": "kinetics_mini",
+    "clip_id": "train/archery/-5NN5hdIwTc_000036_000046",
+    "tag": "kinetics_mini_train_archery_-5NN5hdIwTc_000036_000046"
+  },
+  {
+    "dataset": "kinetics_mini",
+    "clip_id": "train/archery/-GcVBfs4zw8_000007_000017",
+    "tag": "kinetics_mini_train_archery_-GcVBfs4zw8_000007_000017"
+  }
+]
