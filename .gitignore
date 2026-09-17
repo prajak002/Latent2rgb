@@ -5,6 +5,10 @@ __pycache__/
 floor.json
 decoder.pt
 stage_d_results.csv
+floor_dinov2.json
+decoder_dinov2.pt
+predictor_dinov2.pt
+stage_d_results_second_family.csv
 data/
 checkpoints/
 vendor/

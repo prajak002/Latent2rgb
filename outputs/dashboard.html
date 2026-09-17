@@ -111,6 +111,42 @@
   <h1>Horizon Ladder</h1>
   <p><a href="results_gallery.html">→ rollout gallery: drag-compare ground truth vs. decoded predictions</a></p>
 
+  <div class="section" style="border-top:none; padding-top:0;">
+    <h2><span class="num">&mdash;</span>Contribution</h2>
+    <ul class="plain">
+      <li><b>A protocol for a question prior methods can't ask.</b>
+      Representation-inversion methods (Mahendran &amp; Vedaldi, Nash et al.,
+      FAE, DPS, SPADE, Neuralangelo, GeoDE) invert the latent of an image
+      that already exists. This inverts a <i>rolled-forward</i> latent, for
+      a frame that was never observed, with a decoder kept deliberately too
+      weak to hallucinate &mdash; so the output is evidence about the
+      latent, not about the decoder.</li>
+      <li><b>A measurement-gap finding, with confidence intervals, not bare
+      point estimates.</b> Section 6 below shows pixel_error moving several
+      times more than latent_drift under horizon. Section 7 shows that six
+      candidate latent-only proxies for that divergence &mdash; including an
+      entropy-rate metric ported from ecological crash detection &mdash; all
+      fail to substitute for it: weak correlation whose 95% CIs include zero
+      for all six candidates, zero early-warning lead time (Wilson 95% CI
+      [0%, 32%]), a sign flip across CIs that don't overlap between an
+      unrelated pipeline choice, and a pairwise condition ranking that's
+      mostly intransitive (10 explicit 3-cycles &mdash; a formal violation,
+      not a sampling artifact).</li>
+      <li><b>Per-clip evidence.</b> The <a href="results_gallery.html">rollout
+      gallery</a> shows this isn't an averaged artifact: six real clips,
+      each annotated with its own latent_drift/pixel_error range, and the
+      divergence ratio between them varies clip to clip &mdash; consistent
+      with why no single latent-space threshold generalizes.</li>
+      <li><b>A second, differently-trained predictor &mdash; and the gap
+      changes shape.</b> Section 9 runs the identical protocol against a
+      frozen DINOv2 encoder paired with a small predictor trained from
+      scratch on the same clips. The gap doesn't just shrink or vanish: its
+      direction inverts (latent_drift moves more than pixel_error here, not
+      less), suggesting the gap tracks frozen, off-distribution querying
+      specifically &mdash; not latent-only prediction as a category.</li>
+    </ul>
+  </div>
+
   <div class="section">
     <h2><span class="num">1.</span>Research question</h2>
     <p>
@@ -270,6 +306,125 @@
         <svg id="chart-traj-kinetics_mini" viewBox="0 0 300 260" width="100%"></svg>
       </div>
     </div>
+  </div>
+
+  <div class="section" id="7">
+    <h2><span class="num">7.</span>Measurement gap: does any latent-only proxy predict this?</h2>
+    <p>
+      Section 6 shows <code>pixel_error</code> diverging from <code>latent_drift</code> under horizon. The
+      obvious follow-up: is there a cheap, latent-only signal that predicts <i>that divergence itself</i>,
+      so a system without a decoder could still tell when its rollout is failing in pixel space? Experiments
+      1&ndash;6 stress-test six candidates &mdash; cosine distance, Mahalanobis distance, ensemble variance,
+      effective rank, normalized L2 drift, and an entropy-rate metric (EBID) ported from ecological
+      crash-detection &mdash; against real pixel divergence on real clips. All six fail, each in a different
+      way:
+    </p>
+    <div class="result-box">
+      <b>1. Correlation.</b> Best candidate (normalized L2) reaches Pearson r = 0.12 vs. pixel_error; raw
+      latent drift reaches r = 0.013. Cluster-bootstrapped 95% CIs (resampled by clip, n=24) include zero
+      for <b>all six</b> candidates &mdash; none is statistically distinguishable from no relationship.
+      (<code>scripts/experiment1_ebid_vs_baselines.py</code>, <code>scripts/stats_significance.py</code>)<br><br>
+      <b>3. Lead time.</b> 8 of 24 clips crashed (excess-over-floor over threshold). The entropy-rate metric
+      gave early-warning lead time on 0 of them; Wilson 95% CI on that rate is [0%, 32%].
+      (<code>scripts/experiment3_lead_time.py</code>)<br><br>
+      <b>4. Sign stability.</b> Entropy vs. perturbation-strength slope is negative and significant under a
+      raw rollout (95% CI [&minus;0.0075, &minus;0.0039], r&sup2; up to 0.97); under a context-corrected
+      rollout the slope trends positive and is not itself significant (95% CI [&minus;0.0023, 0.0189]), but
+      its interval is fully disjoint from the raw-rollout one &mdash; the two modes are statistically
+      distinguishable from each other, so correction isn't just adding noise, it's changing the metric's
+      relationship to the perturbation it's meant to track.
+      (<code>scripts/experiment4_sweep.py</code>, <code>scripts/experiment5_interactions.py</code>)<br><br>
+      <b>6. Ranking consistency.</b> Across 96 conditions and 4,026 decided pairwise comparisons, only 678
+      (17%) agree with a global Copeland ranking; 10 explicit 3-cycles found &mdash; a formal certificate of
+      intransitivity from the observed data, not a sampling estimate: no scalar ordering fits.
+      (<code>scripts/experiment6_transitivity.py</code>)
+    </div>
+    <p>
+      None of these are implementation bugs to fix &mdash; Stage E already ruled the decoder out as the
+      source of signal, and EBID is a reasonable transplant (an entropy-rate crash detector that works for
+      ecological population collapse). The result is the finding: for this frozen latent-only predictor,
+      pixel-space divergence isn't something these latent-space proxies can stand in for. See the
+      <a href="results_gallery.html">rollout gallery</a> for what this looks like clip by clip.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">8.</span>Protocol (adopt this)</h2>
+    <p>
+      The reusable output of Section 7 isn't "these six metrics failed" in isolation &mdash; it's a
+      checklist for evaluating any frozen, latent-only state predictor with no native decoder.
+      Skipping straight to step 3 without 1&ndash;2 is how a decoder artifact gets reported as a
+      predictor finding, or an untested latent-space proxy gets trusted anyway.
+    </p>
+    <ol>
+      <li><b>Decoder-honesty gate first.</b> Train the decoder only on real tubelets, never on
+      rollouts, and pass the leakage + snapping checks before trusting anything downstream. Failing
+      either means every pixel-space number below is measuring the decoder, not the predictor.</li>
+      <li><b>Don't substitute a latent-space proxy for step 3.</b> All six tested here failed on this
+      predictor &mdash; treat any latent-only "confidence" signal as unverified on your model until it
+      passes the same battery (Experiments 1, 3, 4, 6).</li>
+      <li><b>Decode and compare directly.</b> The only check here that reliably surfaces the
+      divergence a latent-only proxy misses.</li>
+      <li><b>Check re-injection compounding separately.</b> Distinguishes one-shot decode noise from
+      rollout drift that compounds &mdash; steps 1&ndash;3 alone can't tell these apart.</li>
+    </ol>
+    <p>
+      Implemented against the <code>Encoder</code>/<code>Decoder</code>/<code>StatePredictor</code>
+      protocols in <code>latent2rgb/interfaces.py</code>, not against V-JEPA2 specifically &mdash; any
+      model satisfying those interfaces runs the same four steps unmodified.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">9.</span>Second model family: does the gap track V-JEPA2, or the querying regime?</h2>
+    <p>
+      Everything above characterizes one frozen predictor queried causally, out-of-distribution. To find
+      out whether the measurement gap is a property of that regime or of latent-only prediction generally,
+      the identical protocol (Stage D + Experiment 1) was run against a second, differently-architected
+      pair: a frozen, independently-pretrained DINOv2 ViT-S/14 image encoder, paired with a small predictor
+      trained here from scratch by gradient descent on the same clips &mdash; DINOv2 ships no video
+      predictor at all, so unlike V-JEPA2's predictor, this one has to be fit to have anything to query
+      (<code>latent2rgb/dinov2_adapter.py</code>, <code>delta_predictor.py</code>,
+      <code>scripts/train_second_family.py</code>).
+    </p>
+    <div class="result-box">
+      <b>Stage D equivalent.</b> latent_drift moves 34% across k=2&rarr;32 (vs. V-JEPA2's ~2%); pixel_error
+      moves 10% (vs. V-JEPA2's ~12%). The separation-statistic residual shrinks &sim;30x (0.0004 vs.
+      V-JEPA2's 0.0099) &mdash; and the direction inverts: latent space moves <i>more</i> than pixel space
+      here, the opposite pattern from V-JEPA2.
+      (<code>scripts/pilot_second_family.py</code> &rarr; <code>stage_d_results_second_family.csv</code>)<br><br>
+      <b>Experiment 1 equivalent.</b> Candidate-proxy correlations are higher (best r = 0.39, cosine
+      distance, vs. 0.12) but at only 10 clips, none clear a 95% CI either.
+      (<code>scripts/experiment1_second_family.py</code> &rarr; <code>outputs/experiment1_second_family_stats.json</code>)
+    </div>
+    <p>
+      Reading: a predictor trained end-to-end against the exact tokens being measured naturally keeps
+      latent and pixel error coupled. The gap this protocol exists to catch is sharpest exactly where
+      deployment risk is highest &mdash; a frozen, pretrained-elsewhere model queried off-distribution
+      &mdash; not a fixed property of "latent-only prediction" as a category. See Limitations for what this
+      result is and isn't evidence for.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">10.</span>Limitations</h2>
+    <ul class="plain">
+      <li><b>Counterfactual faithfulness is untested.</b> Every claim here is about whether latent-space
+      observables predict pixel-space divergence under a fixed, non-action-conditioned rollout &mdash;
+      none of it says whether the predictor responds correctly to different actions. That needs
+      V-JEPA2-AC plus a real action-conditioned dataset (e.g. DROID, Bridge); both are far outside this
+      project's disk budget (the existing V-JEPA2 checkpoint alone is 4.8GB against ~18GB free, those
+      datasets run 100GB+). A stated scope boundary, not an oversight.</li>
+      <li><b>The second model family (Section 9) is a lightweight stand-in, not a second SOTA world
+      model.</b> DINOv2 was never pretrained for temporal dynamics; its temporal fusion and predictor are
+      both built for this repo, trained on ~26 clips for 40 epochs. It answers "does the gap reproduce on
+      a differently architected, differently trained latent-only predictor," not "does the gap hold for
+      latent-only video world models in general" &mdash; that broader claim needs an independently
+      pretrained second SOTA model this project's budget didn't allow for.</li>
+      <li><b>Sample sizes are small</b> (10&ndash;26 clips depending on the experiment). See
+      <code>outputs/stats_significance.json</code> and <code>experiment1_second_family_stats.json</code>
+      for the bootstrap CIs behind every headline number in Sections 7 and 9.</li>
+    </ul>
   </div>
 
   <footer>

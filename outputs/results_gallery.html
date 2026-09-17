@@ -73,6 +73,12 @@
   .compare .tag.right{right:8px;}
 
   .sub-cap{font-family:'IBM Plex Mono', monospace; font-size:0.76rem; color:var(--text-mute); margin-top:10px;}
+
+  .metrics-box{margin-top:14px; border:1px dashed var(--border); border-radius:8px; padding:12px 14px; font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:var(--text-dim); line-height:1.7;}
+  .metrics-box .metrics-title{text-transform:uppercase; letter-spacing:0.06em; font-size:0.68rem; color:var(--text-mute); margin-bottom:6px;}
+  .metrics-box b{color:var(--text);}
+  .metrics-box .ratio-hi{color:var(--kinetics); font-weight:600;}
+  .metrics-box .ratio-lo{color:var(--text-mute); font-weight:600;}
 </style>
 
 <div class="wrap">
@@ -83,6 +89,13 @@
     actually happened next in the real video (the model never saw it). Stage ③ is
     the frozen model's prediction of what happens next, decoded to pixels. Stages
     ② and ③ are what get compared. Drag the handle.
+  </p>
+  <p>
+    Each card is also annotated with <code>latent_drift</code> and <code>pixel_error</code>'s
+    own range across k=2&rarr;32 &mdash; the numbers behind the pixels. They don't move by the
+    same amount, and by how much varies clip to clip: this is the per-clip evidence for why no
+    single latent-space proxy metric predicted pixel divergence across the six candidates tested
+    in <a href="dashboard.html#7">Experiments 1&ndash;6</a> (best correlation r&nbsp;=&nbsp;0.12).
   </p>
   <div class="nav-links">
     <a href="dashboard.html">&larr; dashboard</a>
@@ -157,6 +170,34 @@ const CLIPS = [
   }
 ];
 
+// Per-clip latent_drift / pixel_error range across k=2..32, computed by
+// scripts/dump_rollout_metrics.py from outputs/videos/rollout_metrics.json
+// -- see Contribution #3 in README.md and dashboard.html section 7.
+const METRICS = {
+  "ssv2_128847": { latentRangePct: 5.0, pixelRangePct: 4.8, ratio: 1.0, pixelMin: 0.240, pixelMax: 0.251 },
+  "ssv2_128893": { latentRangePct: 4.0, pixelRangePct: 23.8, ratio: 5.9, pixelMin: 0.176, pixelMax: 0.223 },
+  "ssv2_129039": { latentRangePct: 5.4, pixelRangePct: 5.8, ratio: 1.1, pixelMin: 0.174, pixelMax: 0.184 },
+  "kinetics_mini_train_archery_-1q7jA3DXQM_000005_000015": { latentRangePct: 1.8, pixelRangePct: 2.9, ratio: 1.6, pixelMin: 0.233, pixelMax: 0.240 },
+  "kinetics_mini_train_archery_-5NN5hdIwTc_000036_000046": { latentRangePct: 1.2, pixelRangePct: 1.9, ratio: 1.6, pixelMin: 0.286, pixelMax: 0.291 },
+  "kinetics_mini_train_archery_-GcVBfs4zw8_000007_000017": { latentRangePct: 3.9, pixelRangePct: 1.8, ratio: 0.5, pixelMin: 0.390, pixelMax: 0.397 }
+};
+
+function metricsHtml(tag){
+  const m = METRICS[tag];
+  if(!m) return '';
+  const ratioClass = m.ratio >= 2 ? 'ratio-hi' : 'ratio-lo';
+  const readout = m.ratio >= 2
+    ? `pixel_error moved <span class="${ratioClass}">${m.ratio}x more</span> than latent_drift did &mdash; exactly the divergence a latent-only proxy would miss.`
+    : `pixel_error and latent_drift moved within <span class="${ratioClass}">${m.ratio}x</span> of each other here &mdash; on this clip a latent-only proxy would have tracked reasonably well.`;
+  return `
+    <div class="metrics-box">
+      <div class="metrics-title">measured across k = 2 &rarr; 32</div>
+      <b>latent_drift</b> range: ${m.latentRangePct}% of its mean &nbsp;&middot;&nbsp;
+      <b>pixel_error</b> range: ${m.pixelRangePct}% of its mean (${m.pixelMin}&ndash;${m.pixelMax})<br>
+      ${readout}
+    </div>`;
+}
+
 const gallery = document.getElementById('gallery');
 CLIPS.forEach(c => {
   const card = document.createElement('div');
@@ -186,6 +227,7 @@ CLIPS.forEach(c => {
       <div class="handle"></div>
     </div>
     <div class="sub-cap">k = 2 &rarr; 32, every 2 frames past t=8</div>
+    ${metricsHtml(c.tag)}
   `;
   gallery.appendChild(card);
 

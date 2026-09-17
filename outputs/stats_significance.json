@@ -1,0 +1,86 @@
+{
+  "stage_d_range_ratio": {
+    "point": 6.099351301969421,
+    "ci_lo": 2.0323650526322297,
+    "ci_hi": 14.004126714006878,
+    "n_clips": 10,
+    "n_boot_used": 5000
+  },
+  "experiment1_correlations": {
+    "latent_l2_drift": {
+      "point": 0.012781577003536944,
+      "ci_lo": -0.27368663386110487,
+      "ci_hi": 0.4660236326707236,
+      "n_clips": 24,
+      "n_boot_used": 5000
+    },
+    "cosine_distance": {
+      "point": 0.09481758829077638,
+      "ci_lo": -0.1786929577439915,
+      "ci_hi": 0.3376773137169098,
+      "n_clips": 24,
+      "n_boot_used": 5000
+    },
+    "normalized_l2": {
+      "point": 0.12098281249744994,
+      "ci_lo": -0.1669752642849562,
+      "ci_hi": 0.3768549871657889,
+      "n_clips": 24,
+      "n_boot_used": 5000
+    },
+    "ensemble_variance": {
+      "point": 0.10077010463566724,
+      "ci_lo": -0.32104514448685123,
+      "ci_hi": 0.4976954805664236,
+      "n_clips": 24,
+      "n_boot_used": 5000
+    },
+    "effective_rank": {
+      "point": 0.10227210299360935,
+      "ci_lo": -0.12438958391633957,
+      "ci_hi": 0.288649866155471,
+      "n_clips": 24,
+      "n_boot_used": 5000
+    },
+    "mahalanobis": {
+      "point": -0.04871645458631378,
+      "ci_lo": -0.2030620370872906,
+      "ci_hi": 0.12243897501582891,
+      "n_clips": 24,
+      "n_boot_used": 5000
+    },
+    "ebid_entropy": {
+      "point": 0.10602501247942223,
+      "ci_lo": -0.12883872643256428,
+      "ci_hi": 0.2877265616770513,
+      "n_clips": 24,
+      "n_boot_used": 5000
+    }
+  },
+  "experiment3_lead_time_rate": {
+    "successes": 0,
+    "n_crashed": 8,
+    "rate": 0.0,
+    "wilson_ci_95": [
+      0.0,
+      0.3244156195108769
+    ]
+  },
+  "experiment4_entropy_epsilon_slope": {
+    "pure": {
+      "point": -0.005646422838158867,
+      "ci_lo": -0.00747313210116715,
+      "ci_hi": -0.003913381244381251,
+      "n_clips": 26,
+      "n_boot_used": 5000
+    },
+    "corrected": {
+      "point": 0.008224401331167305,
+      "ci_lo": -0.0023259163705731598,
+      "ci_hi": 0.018921259058278513,
+      "n_clips": 26,
+      "n_boot_used": 5000
+    }
+  },
+  "experiment4_sign_flip_ci_disjoint": true
+}

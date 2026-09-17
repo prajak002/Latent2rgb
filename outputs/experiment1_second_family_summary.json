@@ -1,0 +1,42 @@
+{
+  "m_members": 6,
+  "epsilon": 0.05,
+  "n_clips": 10,
+  "pearson_r_ranked": [
+    {
+      "metric": "2. Cosine distance",
+      "column": "cosine_distance",
+      "pearson_r_vs_pixel_error": 0.3874249200740356
+    },
+    {
+      "metric": "4. Ensemble variance",
+      "column": "ensemble_variance",
+      "pearson_r_vs_pixel_error": 0.3756816910721084
+    },
+    {
+      "metric": "3. Normalized L2",
+      "column": "normalized_l2",
+      "pearson_r_vs_pixel_error": 0.35392521223580997
+    },
+    {
+      "metric": "1. Raw Latent L2 drift",
+      "column": "latent_l2_drift",
+      "pearson_r_vs_pixel_error": 0.3149778923897913
+    },
+    {
+      "metric": "7. Mahalanobis distance",
+      "column": "mahalanobis",
+      "pearson_r_vs_pixel_error": 0.27486431344241646
+    },
+    {
+      "metric": "6. Effective rank (perturbation covariance)",
+      "column": "effective_rank",
+      "pearson_r_vs_pixel_error": -0.08421998955416443
+    },
+    {
+      "metric": "8. EBID entropy-based ensemble spread",
+      "column": "ebid_entropy",
+      "pearson_r_vs_pixel_error": -0.08421889568954329
+    }
+  ]
+}
