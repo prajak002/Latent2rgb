@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from latent2rgb import select_device
 from latent2rgb.data import RolloutBuilder
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.ebid.baselines import cosine_distance, normalized_l2
@@ -92,7 +93,7 @@ def main():
     ap.add_argument("--out-csv", type=str, default="outputs/experiment1_results.csv")
     args = ap.parse_args()
 
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     print(f"device: {device}  M_MEMBERS={M_MEMBERS}  EPSILON={EPSILON}")
 
     raw_encoder, raw_predictor = load_encoder_predictor(args.checkpoint, device=device)

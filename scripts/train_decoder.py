@@ -13,6 +13,7 @@ import time
 import torch
 from torch import nn
 
+from latent2rgb import select_device
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.metrics import pixel_l2
 from latent2rgb.ssv2 import SSv2ClipSource
@@ -55,7 +56,7 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     print(f"device: {device}")
 
     torch.manual_seed(args.seed)

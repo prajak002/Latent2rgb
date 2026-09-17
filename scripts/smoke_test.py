@@ -10,6 +10,7 @@ import argparse
 
 import torch
 
+from latent2rgb import select_device
 from latent2rgb.data import RolloutBuilder
 from latent2rgb.interfaces import HORIZONS
 from latent2rgb.ssv2 import SSv2ClipSource
@@ -23,7 +24,7 @@ def main():
     ap.add_argument("--t", type=int, default=8)
     args = ap.parse_args()
 
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     print(f"device: {device}")
 
     print("loading real V-JEPA2 ViT-L encoder+predictor from checkpoint...")

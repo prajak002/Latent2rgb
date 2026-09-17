@@ -42,6 +42,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from latent2rgb import select_device
 from latent2rgb.data import RolloutBuilder
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.ebid.entropy import entropy_trace, spectral_entropy
@@ -286,7 +287,7 @@ def main():
     ap.add_argument("--out-hopf-json", type=str, default="outputs/stage_g_hopf_scaling.json")
     args = ap.parse_args()
 
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     print(f"device: {device}")
 
     with open(args.floor_json) as f:

@@ -28,6 +28,7 @@ import torch
 from PIL import Image
 from sklearn.decomposition import PCA
 
+from latent2rgb import select_device
 from latent2rgb.data import RolloutBuilder
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.interfaces import HORIZONS
@@ -93,7 +94,7 @@ def compute_by_k(rows, dataset=None):
 
 
 def main():
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     print(f"device: {device}")
 
     with open(FLOOR_JSON) as f:

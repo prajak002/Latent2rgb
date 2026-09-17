@@ -19,6 +19,7 @@ import json
 import pandas as pd
 import torch
 
+from latent2rgb import select_device
 from latent2rgb.data import RolloutBuilder
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.interfaces import HORIZONS
@@ -46,7 +47,7 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     print(f"device: {device}")
 
     with open(args.floor_json) as f:

@@ -13,6 +13,7 @@ from pathlib import Path
 import torch
 from PIL import Image
 
+from latent2rgb import select_device
 from latent2rgb.data import RolloutBuilder
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.interfaces import HORIZONS
@@ -36,7 +37,7 @@ def main():
     ap.add_argument("--out-dir", type=str, default="outputs/frames")
     args = ap.parse_args()
 
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     raw_encoder, raw_predictor = load_encoder_predictor(args.checkpoint, device=device)
     encoder = VJEPA2Encoder(raw_encoder, device=device)
     predictor = VJEPA2Predictor(raw_predictor, device=device)

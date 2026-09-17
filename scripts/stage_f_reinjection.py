@@ -24,6 +24,7 @@ import json
 
 import torch
 
+from latent2rgb import select_device
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.metrics import pixel_l2
 from latent2rgb.video_source import VideoDirClipSource
@@ -104,7 +105,7 @@ def run_dataset(name, clip_source, encoder, predictor, decoder, device, ids):
 
 
 def main():
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     print(f"device: {device}")
 
     raw_encoder, raw_predictor = load_encoder_predictor("checkpoints/vitl.pt", device=device)

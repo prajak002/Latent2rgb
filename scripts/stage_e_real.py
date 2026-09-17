@@ -18,6 +18,7 @@ import json
 
 import torch
 
+from latent2rgb import select_device
 from latent2rgb.decoder import MinimalDecoder
 from latent2rgb.metrics import pixel_l2
 from latent2rgb.video_source import VideoDirClipSource
@@ -34,7 +35,7 @@ def get_tubelet(clip_source, clip_id, start):
 
 
 def main():
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = select_device()
     raw_encoder, _ = load_encoder_predictor("checkpoints/vitl.pt", device=device)
     encoder = VJEPA2Encoder(raw_encoder, device=device)
     decoder = MinimalDecoder(embed_dim=encoder.embed_dim, grid_size=16, patch_size=16, tubelet_size=TUBELET_SIZE).to(device)
