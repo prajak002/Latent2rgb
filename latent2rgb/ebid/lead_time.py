@@ -1,18 +1,3 @@
-"""
-Lead-time detection: ported from github.com/HussainAther/pcc,
-scripts/lead_time.py (warn_time_from_trace). There it asks how many
-timesteps before a replicator system's population extinction the smoothed
-entropy-rate dS/dt first drops below a threshold. Here "timestep" is
-replaced by whatever index axis the caller supplies (horizon k, or
-reinjection step j), and "extinction" is replaced by a caller-supplied
-crash detector on Horizon Ladder's own signal (excess_over_floor).
-
-Kept close to the original argument names/shape on purpose, so a reviewer
-who knows the PCC repo can see directly that this is the same method
-applied to a different system, not a different method with a similar
-name.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -39,17 +24,9 @@ def warn_index_from_trace(
     threshold_quantile: float = 0.10,
     smooth_w: int = 3,
 ) -> Tuple[Optional[float], float]:
-    """
-    Same logic as PCC's warn_time_from_trace: compute d(entropy)/d(xs),
-    smooth it, and find the first index (reading in increasing-xs order)
-    after which the rate stays below `threshold` for `k_consecutive`
-    points in a row. Returns (warn_x, threshold_used); warn_x is None if
-    the rate never crosses.
-
-    threshold=None auto-picks the `threshold_quantile` quantile of the
-    observed rate values (PCC default: 0.10), clipped at 0 -- i.e. "rate
-    is unusually negative relative to this trace's own history."
-    """
+    # First x (increasing order) after which smoothed d(entropy)/dx stays
+    # below `threshold` for k_consecutive points. threshold=None auto-picks
+    # the threshold_quantile quantile of the trace's own rate, clipped at 0.
     xs_arr = np.asarray(xs, dtype=float)
     h_arr = np.asarray(entropy, dtype=float)
     if xs_arr.size < 3:
@@ -80,9 +57,9 @@ def warn_index_from_trace(
 
 @dataclass
 class LeadTimeResult:
-    crash_x: Optional[float]         # where the reference signal (e.g. pixel_error) crossed its own crash threshold
-    entropy_warn_x: Optional[float]  # where entropy-rate crossed its threshold
-    lead: Optional[float]            # crash_x - entropy_warn_x; positive = entropy warned first
+    crash_x: Optional[float]
+    entropy_warn_x: Optional[float]
+    lead: Optional[float]
     entropy_threshold_used: float
 
 
@@ -97,13 +74,6 @@ def compare_lead_time(
     entropy_threshold_quantile: float = 0.10,
     smooth_w: int = 3,
 ) -> LeadTimeResult:
-    """
-    reference_signal: e.g. excess_over_floor(x) for x in xs -- the thing
-    Horizon Ladder already reports. crash_x = first x where
-    reference_signal >= reference_crash_threshold (mirrors PCC's
-    first_time_below, just polarity-flipped since pixel error rising is
-    the bad direction here, not a population dropping).
-    """
     xs_arr = np.asarray(xs, dtype=float)
     ref = np.asarray(reference_signal, dtype=float)
     crash_idx = np.where(ref >= reference_crash_threshold)[0]

@@ -1,38 +1,5 @@
-"""
-Experiment 1 (spec from Hussain Ather, PCC/EBID collaboration):
-
-  "Does entropy-based ensemble spread grow with V-JEPA2 rollout horizon?
-   Does EBID predict pixel-space failure better than latent L2?"
-
-Baselines (Hussain's list):
-  1. Raw Latent L2 drift
-  2. Cosine distance
-  3. Normalized L3            -- see NOTE in latent2rgb/ebid/baselines.py;
-                                  implemented as normalized_l2 (relative L2)
-  4. Ensemble variance
-  5. Pixel error              -- the failure signal everything else is scored against
-  6. Effective rank of the perturbation covariance
-  7. Mahalanobis distance
-
-  8. EBID entropy-based ensemble spread -- the candidate, scored the same way.
-
-Ensemble construction: V-JEPA2's predictor is frozen/deterministic, so the
-"ensemble" is a Monte Carlo perturbed-initial-condition ensemble (context
-tokens perturbed with small Gaussian noise, matching ensemble weather
-forecasting practice) -- see ebid/ensemble.py. Member 0 is always the
-unperturbed rollout; that member is what baselines 1-3 and 5 are computed
-against (the reference prediction every other stage in this repo treats as
-"the" prediction).
-
-Evaluation: pool (clip, k) samples across both datasets, and for each of
-the 7 candidate signals (everything except pixel_error itself) report
-Pearson r against real pixel_error -- the direct test of "does EBID predict
-pixel-space failure better than latent L2 (or the other six baselines)."
-Separately, report entropy/effective_rank means per horizon k to answer
-"does ensemble spread grow with horizon."
-
-RAW NUMBERS ONLY -- same policy as every other stage in this repo.
-"""
+"""Experiment 1/2: does ensemble spread grow with rollout horizon, and does
+EBID predict pixel-space failure better than the other baselines?"""
 
 from __future__ import annotations
 
