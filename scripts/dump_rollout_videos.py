@@ -50,10 +50,15 @@ def build_clip_videos(clip_id, clip_source, encoder, predictor, decoder, device,
     frames = batch.frames.to(device)
     context = encoder.encode(frames[:T].permute(1, 0, 2, 3).unsqueeze(0)).squeeze(0)
 
+    context_dir = out_dir / f"{tag}_context_frames"
     true_dir = out_dir / f"{tag}_true_frames"
     pred_dir = out_dir / f"{tag}_rollout_frames"
+    context_dir.mkdir(parents=True, exist_ok=True)
     true_dir.mkdir(parents=True, exist_ok=True)
     pred_dir.mkdir(parents=True, exist_ok=True)
+
+    for i in range(T):
+        frame_to_pil(frames[i]).save(context_dir / f"{i:03d}.png")
 
     for i, k in enumerate(K_VALUES):
         target_slot = (T + k) // TUBELET_SIZE
@@ -68,8 +73,10 @@ def build_clip_videos(clip_id, clip_source, encoder, predictor, decoder, device,
         frame_to_pil(true_frame).save(true_dir / f"{i:03d}.png")
         frame_to_pil(pred_frame).save(pred_dir / f"{i:03d}.png")
 
+    encode_mp4(context_dir, out_dir / f"{tag}_context.mp4")
     encode_mp4(true_dir, out_dir / f"{tag}_true.mp4")
     encode_mp4(pred_dir, out_dir / f"{tag}_rollout.mp4")
+    shutil.rmtree(context_dir)
     shutil.rmtree(true_dir)
     shutil.rmtree(pred_dir)
     return True

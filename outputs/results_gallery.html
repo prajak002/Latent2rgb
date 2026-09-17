@@ -1,44 +1,67 @@
 <meta charset="utf-8">
-<title>Horizon Ladder — Rollout Gallery</title>
+<title>Horizon Ladder: Rollout Gallery</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root{
     --bg:#eef1f4; --text:#161b22; --text-dim:#5b6472; --text-mute:#848f9c;
     --border:#ccd4dc; --grid:#dde3e9; --ssv2:#2a78d6; --kinetics:#1baf7a;
-    --handle:#161b22;
+    --handle:#161b22; --step:#3a4552;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
       --border:#2c3440; --grid:#252c37; --ssv2:#3987e5; --kinetics:#199e70;
-      --handle:#e7ebf0;
+      --handle:#e7ebf0; --step:#c3ccd6;
     }
   }
   :root[data-theme="dark"]{
     --bg:#0e1116; --text:#e7ebf0; --text-dim:#93a0b0; --text-mute:#6b7684;
     --border:#2c3440; --grid:#252c37; --ssv2:#3987e5; --kinetics:#199e70;
-    --handle:#e7ebf0;
+    --handle:#e7ebf0; --step:#c3ccd6;
   }
 
   *{box-sizing:border-box;}
   body{background:var(--bg); color:var(--text); font-family:'IBM Plex Sans', system-ui, sans-serif; padding:0 20px; padding-block:48px 90px;}
-  .wrap{max-width:920px;margin:0 auto;}
+  .wrap{max-width:960px;margin:0 auto;}
 
   .kicker{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); margin:0 0 14px;}
   h1{font-family:'Instrument Serif', Georgia, serif; font-style:italic; font-weight:400; font-size:clamp(2.2rem,5.5vw,3.1rem); margin:0 0 18px; line-height:1.02;}
-  p{line-height:1.6; font-size:0.96rem; color:var(--text-dim); margin:0 0 12px; max-width:70ch;}
+  p{line-height:1.6; font-size:0.96rem; color:var(--text-dim); margin:0 0 12px; max-width:72ch;}
   p b{color:var(--text); font-weight:600;}
+  code{font-family:'IBM Plex Mono', monospace; background:var(--grid); padding:1px 5px; border-radius:4px; font-size:0.88em; color:var(--text);}
   .nav-links{font-family:'IBM Plex Mono', monospace; font-size:0.82rem; margin-bottom:28px;}
   .nav-links a{color:var(--text-dim); text-decoration:none; border-bottom:1px dashed var(--border); margin-right:16px;}
   .nav-links a:hover{color:var(--text);}
 
+  /* pipeline diagram */
+  .pipeline{border:1px solid var(--border); border-radius:10px; padding:22px 20px; margin-bottom:34px; background:var(--grid);}
+  .pipeline-title{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-mute); margin-bottom:16px;}
+  .flow{display:flex; align-items:stretch; gap:10px; flex-wrap:wrap;}
+  .flow-box{flex:1 1 150px; border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:var(--bg);}
+  .flow-box .n{font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--step); font-weight:600; margin-bottom:4px;}
+  .flow-box .t{font-weight:600; font-size:0.92rem; margin-bottom:4px;}
+  .flow-box .d{font-size:0.8rem; color:var(--text-dim); line-height:1.4;}
+  .flow-arrow{display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:var(--text-mute); padding:0 2px; flex:0 0 auto;}
+  .flow-split{display:flex; flex-direction:column; gap:8px; flex:1 1 150px;}
+  @media (max-width:720px){ .flow{flex-direction:column;} .flow-arrow{transform:rotate(90deg); padding:4px 0;} }
+
   .card{border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:28px; background:var(--grid);}
-  .card-head{display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .card-head{display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
   .badge{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.04em; padding:2px 8px; border-radius:5px; color:#fff;}
   .badge.ssv2{background:var(--ssv2);}
   .badge.kinetics_mini{background:var(--kinetics);}
   .clip-id{font-family:'IBM Plex Mono', monospace; font-size:0.82rem; color:var(--text-dim);}
+
+  .stage-label{font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--step); margin:0 0 6px; display:flex; align-items:center; gap:6px;}
+  .stage-label .badge-num{background:var(--step); color:var(--bg); border-radius:50%; width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center; font-size:0.65rem;}
+
+  .context-row{margin-bottom:16px;}
+  .context-video{width:200px; max-width:100%; aspect-ratio:1/1; border-radius:6px; overflow:hidden; background:#000;}
+  .context-video video{width:100%; height:100%; object-fit:cover; display:block;}
+  .context-sub{font-size:0.78rem; color:var(--text-mute); margin-top:6px; max-width:50ch;}
+
+  .mid-arrow{font-family:'IBM Plex Mono', monospace; font-size:0.78rem; color:var(--text-mute); margin:2px 0 14px; padding-left:2px;}
 
   .compare{position:relative; width:100%; aspect-ratio:16/9; border-radius:6px; overflow:hidden; background:#000; cursor:ew-resize; user-select:none;}
   .compare video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
@@ -50,23 +73,51 @@
   .compare .tag.right{right:8px;}
 
   .sub-cap{font-family:'IBM Plex Mono', monospace; font-size:0.76rem; color:var(--text-mute); margin-top:10px;}
-  .section{border-top:1px solid var(--border); padding-block:28px;}
 </style>
 
 <div class="wrap">
-  <div class="kicker">Horizon Ladder — V-JEPA2 diagnostic</div>
-  <h1>Ground truth vs. rollout prediction</h1>
+  <div class="kicker">Horizon Ladder, V-JEPA2 diagnostic</div>
+  <h1>Real footage &rarr; ground truth &rarr; rollout</h1>
   <p>
-    For each clip: context is the real frames up to <code>t=8</code>. Each frame in
-    these loops is a <b>separate single-shot query</b> to the frozen V-JEPA2 predictor
-    at horizon <code>k = 2, 4, 6, &hellip; 32</code> — not an autoregressive playback —
-    decoded through the minimal linear decoder. Ground truth is the real frame at that
-    same future timestamp. Drag the handle to compare.
+    How to read each card below: the model only ever sees stage ①. Stage ② is what
+    actually happened next in the real video (the model never saw it). Stage ③ is
+    the frozen model's prediction of what happens next, decoded to pixels. Stages
+    ② and ③ are what get compared. Drag the handle.
   </p>
   <div class="nav-links">
     <a href="dashboard.html">&larr; dashboard</a>
     <a href="https://github.com/prajak002/Latent2rgb/issues/1">GitHub issue #1</a>
     <a href="https://huggingface.co/datasets/Pras13/latent2rgb-ebid-results">HF dataset</a>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-title">Pipeline, once per clip</div>
+    <div class="flow">
+      <div class="flow-box">
+        <div class="n">start</div>
+        <div class="t">Real footage</div>
+        <div class="d">The original video. Split at <code>t=8</code>.</div>
+      </div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-split">
+        <div class="flow-box">
+          <div class="n">① context</div>
+          <div class="t">frames[0&ndash;8]</div>
+          <div class="d">Encoded into latent tokens. <b>This is all the model sees.</b></div>
+        </div>
+        <div class="flow-box">
+          <div class="n">② ground truth</div>
+          <div class="t">frames[8+k]</div>
+          <div class="d">The real future frame at horizon k. Untouched pixels, never fed to the model.</div>
+        </div>
+      </div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-box">
+        <div class="n">③ rollout</div>
+        <div class="t">predict &rarr; decode</div>
+        <div class="d">Frozen predictor queried at horizon k from context alone, then decoded to pixels. <b>The model's guess.</b></div>
+      </div>
+    </div>
   </div>
 
   <div id="gallery"></div>
@@ -115,14 +166,26 @@ CLIPS.forEach(c => {
       <span class="badge ${c.dataset}">${c.dataset}</span>
       <span class="clip-id">${c.clip_id}</span>
     </div>
+
+    <div class="context-row">
+      <div class="stage-label"><span class="badge-num">1</span>real footage the model sees (context, t=0&ndash;8)</div>
+      <div class="context-video">
+        <video src="videos/${c.tag}_context.mp4" muted autoplay loop playsinline preload="auto"></video>
+      </div>
+      <div class="context-sub">Everything below is predicted or measured from only this.</div>
+    </div>
+
+    <div class="mid-arrow">&darr; the model never sees what happens after this point &darr;</div>
+
+    <div class="stage-label"><span class="badge-num">2</span>ground truth <span style="opacity:.5">vs</span> <span class="badge-num">3</span>rollout prediction</div>
     <div class="compare">
       <video class="bottom-layer" src="videos/${c.tag}_true.mp4" muted autoplay loop playsinline preload="auto"></video>
       <video class="top-layer" src="videos/${c.tag}_rollout.mp4" muted autoplay loop playsinline preload="auto"></video>
-      <div class="tag left">ground truth</div>
-      <div class="tag right">rollout (decoded)</div>
+      <div class="tag left">② ground truth (real)</div>
+      <div class="tag right">③ rollout (decoded)</div>
       <div class="handle"></div>
     </div>
-    <div class="sub-cap">k = 2 &rarr; 32, every 2 frames, t=8 context</div>
+    <div class="sub-cap">k = 2 &rarr; 32, every 2 frames past t=8</div>
   `;
   gallery.appendChild(card);
 
