@@ -1,0 +1,11 @@
+{
+  "name": "horizon-ladder-deck",
+  "private": true,
+  "description": "Generates outputs/horizon-ladder.pptx from scripts/build_deck.js and scripts/deck_script.js",
+  "scripts": {
+    "deck": "node scripts/build_deck.js"
+  },
+  "devDependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}

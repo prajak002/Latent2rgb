@@ -26,3 +26,5 @@ outputs/runner.log
 .claude/
 .vercel
 .env*
+node_modules/
+package-lock.json

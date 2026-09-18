@@ -1,0 +1,299 @@
+# Horizon Ladder: speaker script
+
+Full talk track for `outputs/horizon-ladder.pptx`. 4,729 words, about 33 minutes at a measured pace. The same text ships as the speaker notes inside the deck.
+
+For a short slot, slides 1, 3, 5, 8, 10, 11, 14 and 16 stand alone as a coherent eight, which runs about fifteen minutes.
+
+---
+
+## Slide 1. Cover
+
+*OPENING, about 60 seconds.*
+
+"Every serious lab building world models right now is making the same bet: that you can train a model to predict the future in latent space, and evaluate it in latent space, and that this is enough. I want to show you the experiment that tests that bet directly, and what happened when we ran it."
+
+Then the one-sentence version of the whole talk: a world model rolls its internal state forward and produces a latent for a moment in time that never actually occurred. There is no photograph of that moment. So there is nothing to check the prediction against, and the field has quietly settled for checking it against the only thing available, which is another latent.
+
+Say what you built: a deliberately minimal instrument that decodes that rolled-forward latent back into pixels, so it can be compared against the real frame that did happen. Then say the punchline early, because it earns you the next fifteen minutes: on a real frozen predictor the pixel-space error moves about six times more than the latent-space error does, and none of the seven cheap latent-only substitutes we tested closed that gap.
+
+Name the three model families on the slide so they know this is not a single-checkpoint anecdote. V-JEPA2 is Meta's released video model, frozen and unmodified. The other two we trained ourselves, deliberately differently, to find out whether the effect is about one model or about a regime.
+
+Do not explain the method yet. Just plant the question.
+
+---
+
+## Slide 2. The setup
+
+*THE SETUP, about 90 seconds. Keep this fast; most of the room knows it.*
+
+Establish the three-step loop that every JEPA-style world model runs on.
+
+Step one, encode. Real frames go into a vision transformer and come out as a sequence of latent tokens. In our case that is V-JEPA2's ViT-L at 256 by 256 with patch size 16, so each two-frame tubelet becomes 256 tokens of width 1024. The tokens are the model's compressed idea of what is in the scene and what is moving.
+
+Step two, roll forward. You hand the predictor the tokens for the past and ask it what the tokens look like k frames into the future. This is pure latent-space arithmetic. No image is produced, no image is consulted.
+
+Step three, act on it. This is the step that matters commercially, and it is the reason this talk exists. Planning reads that rolled-forward latent. Model-predictive control reads it. Benchmarks and ablations read it. Every downstream decision treats it as a faithful description of a future scene.
+
+Land the line at the bottom: the thing being trusted in step three was never checked against an image. Not because anyone was careless, but because there was no obvious way to check it.
+
+If someone asks why not just compare latents, say: that is exactly what everyone does, and the rest of this talk is about whether that comparison tells you what you think it does.
+
+---
+
+## Slide 3. The problem
+
+*THE PROBLEM, about 2 minutes. This is the slide the whole talk hangs on. Slow down.*
+
+Put the difficulty plainly first: to score a prediction you need a target. For a prediction about the future, the target is the future. But the model was asked what the world looks like at time t plus k given only the past, and the specific rollout it produced describes a future that, as a complete scene, never occurred in front of any camera. There is no ground-truth image of the model's imagined future.
+
+Now the two columns, and give each of them a beat.
+
+On the left, what you can measure: the distance between the predicted latent and the latent of the real frame. Call it latent drift. It is cheap, it is always available, and it is what every paper reports.
+
+On the right, what you actually care about: whether the scene that latent describes is correct. Is the hand still holding the cup. Did the object move the way physics says. That is a pixel-space question, and essentially nobody computes it for rolled-forward latents.
+
+Then the hinge of the talk, and say it as a question rather than an assertion: the field's implicit assumption is that the left number stands in for the right one. Do those two numbers even move together?
+
+Pause there. That assumption had never been tested on a real frozen predictor, because testing it requires the instrument that the next slides build.
+
+---
+
+## Slide 4. Prior work and the novelty point
+
+*PRIOR WORK AND THE NOVELTY POINT, about 2 minutes. This is where you establish that this is a new question, not a new trick.*
+
+Be generous about prior work, because the contrast is what does the work for you.
+
+There is a mature literature on representation inversion: Mahendran and Vedaldi, Nash and colleagues, feature-space autoencoders, diffusion posterior sampling, SPADE, Neuralangelo, GeoDE. All of these take a latent and turn it back into an image. Some of them are extremely good.
+
+Here is the structural difference, and this is the novelty claim. Every one of those methods inverts the latent of an image that already exists. The task is reconstruction, the target is known, and the success criterion is fidelity. Within that frame, a stronger decoder is unambiguously better. If you can add a diffusion prior and get a sharper image, you should.
+
+We need to invert something that no prior method is set up to invert: a latent that was produced by rolling a frozen predictor forward, for a frame nobody ever observed, on a model that ships no decoder at all. V-JEPA2 genuinely has no pixel decoder. That is not an oversight, it is the design.
+
+And in our frame the incentive inverts. A stronger decoder is worse. A diffusion decoder carries a learned prior over natural images, so it can take a latent that has degraded into near-noise and still emit a clean, plausible kitchen scene. You would look at it and conclude the model is fine. The failure we are hunting is exactly the one a good decoder hides.
+
+So the contribution is not a better inversion technique. It is a question that could not previously be posed, plus the instrument that makes it answerable.
+
+---
+
+## Slide 5. The central design decision
+
+*THE CENTRAL DESIGN DECISION, about 90 seconds. One idea, said clearly.*
+
+This is the sentence to land: we trade decode quality for decode honesty.
+
+Spell out what the decoder actually is, because its weakness is the whole argument. It is a single linear layer applied to each token independently. One matrix of 1024 by 1536, a sigmoid, and then the numbers are folded back into a patch of pixels. That is roughly one and a half million parameters, shared across all 256 tokens. It is trained with plain mean squared error on real frames. No perceptual loss, no adversarial loss, no diffusion, no attention between tokens.
+
+Then the property that matters, and say it precisely: patch j of the output image is a function of token j and nothing else. There is no cross-token mixing and no learned image prior. So any structure you see in the decoded frame had to arrive through the latent. There is nowhere else for it to have come from.
+
+Contrast that with the alternative one more time. A diffusion decoder's output distribution is dominated by its prior. It will happily produce a beautiful frame from a latent that carries almost nothing, and you will never know.
+
+The honest cost: our reconstructions are blurry. That is the price, and we measure it rather than hand-wave it. The decoder's error on real frames, with no rollout involved at all, is what we call the floor, and every number downstream is read against that floor.
+
+If someone objects that a blurry decoder might miss subtle failures, agree. It is a conservative instrument. It can only under-report the gap, not manufacture one.
+
+---
+
+## Slide 6. The architecture and the flow
+
+*THE ARCHITECTURE AND THE FLOW, about 4 minutes. This is the longest slide. Walk the diagram left to right and do not skip the dashed boxes.*
+
+Start with the main chain across the middle. Five boxes, one pass of the protocol on one clip.
+
+Box one, the causal window. Pick a start time t. Take the frames from the beginning of the clip up to t, rounded down to a whole number of two-frame tubelets, because the encoder cannot resolve anything finer. Nothing at or after the next frame is allowed in. Strictly the past.
+
+Box two, the frozen encoder. Those frames go through V-JEPA2's ViT-L and come out as context tokens. Frozen means frozen: we never fine-tune it, we only call it.
+
+Box three, the predictor, and this is the subtle one. V-JEPA2's predictor is addressed with two index sets over the token grid. One set says here is the context I am giving you. The other says fill in these positions. We build the context set from the past and the target set from the single future tubelet containing frame t plus k. One forward pass, not a k-step loop.
+
+Now say the honest part out loud, because a reviewer will find it otherwise. This query is out of distribution. V-JEPA2 was pretrained on masked completion inside an already-observed clip, where context and target are scattered across the whole time span. It was never trained on a mask where every context token comes strictly before every target token. The probability of drawing our mask shape from its training distribution is exactly zero. This is architecturally valid to construct, and unprecedented to ask. Every number downstream describes that frozen predictor under that regime, and we say so everywhere.
+
+Box four, the minimal decoder from the previous slide. Tokens in, a two-frame tubelet of pixels out. We score against the later of the two frames.
+
+Box five, compare. Two numbers: latent drift, the distance between predicted and true tokens, and pixel error, the per-pixel RMSE between the decoded frame and the real one.
+
+Now the branch below the chain. The ground-truth path. Horizon k is expressed in frames, but the smallest addressable unit is a tubelet, so k resolves to the tubelet containing frame t plus k. We encode that real tubelet to get the true latent, and we keep the real frame for the pixel comparison. Two validity conditions: the target tubelet must not overlap the context, which is why k equals 1 is dropped, and it must fall inside the predictor's grid depth of 32.
+
+Then the dashed box at the bottom left, admissibility, and this is the part people skip. Before any pixel number is allowed to mean anything, three checks. The decoder floor, which is its reconstruction error on real frames with no rollout. The leakage check, which asks whether the decoder is actually reading its input. The snapping check, which asks whether it collapses onto memorised frames. Next slide covers those in detail.
+
+Bottom right, the re-injection loop. Take a predicted latent, decode it, re-encode the result, and resume the rollout from there. Compare against the path that was never decoded. That tells you whether a decode error is a one-time discrepancy or something that compounds through the dynamics.
+
+Finally, the strip across the top, which is the experiment that takes up the second half of the talk. Perturb the context, build an ensemble, read seven scalar proxies off it, and ask whether any of them can replace the pixel check. The red cross is the answer.
+
+Close the slide on portability: none of this is written against V-JEPA2. It is implemented against three interfaces, an encoder, a decoder and a state predictor. Any model exposing those runs the identical protocol.
+
+---
+
+## Slide 7. The honesty gate
+
+*THE HONESTY GATE, about 2 minutes. This is a credibility slide. Present it as something you did to yourself before anyone asked.*
+
+Frame it: the single most likely way for a result like ours to be wrong is that we are measuring our own decoder and calling it a property of the predictor. So before showing a single headline number, here is the instrument passing its own tests. All three run on real encoded latents, with no predictor involved at all.
+
+Check one, context leakage. Encode clip A, decode it, and measure the result against clip A and against an unrelated clip B. If the decoder were ignoring its input and emitting some generic plausible frame, those two errors would be about the same. We want a large gap. We measure about plus 0.15 on real latents, roughly 80 percent above the same-clip error, on both datasets. The decoder is reading its input.
+
+Check two, snapping. Take two real latents and interpolate linearly between them, decoding at each step. A healthy decoder degrades smoothly. A decoder that has memorised a few frames shows a plateau and then a jump, which appears as a spike in the second difference of the error curve. We measure the curvature and find no spike.
+
+Check three, the floor. The decoder's error on real frames with no rollout. This is not a pass-fail test, it is a measurement, and it is the baseline every later number is read against. We report excess over floor, not raw error.
+
+Then say why the order matters: if you skip this and go straight to decoding rollouts, a decoder artefact gets published as a finding about the predictor. It is the most common failure mode for this kind of work, and it is why gate one comes first in the protocol we are proposing.
+
+---
+
+## Slide 8. The headline finding
+
+*THE HEADLINE FINDING, about 2 minutes. Slow down on the numbers and let them sit.*
+
+Read the left column top to bottom.
+
+As the horizon goes from k equals 2 to k equals 32, latent drift moves 2.0 percent of its own mean. It is nearly flat. Pixel error, on the identical rollouts, moves 12.0 percent. The ratio is 6.10, and the 95 percent confidence interval from a clip-level bootstrap is 2.03 to 14.00. It excludes one comfortably.
+
+Pre-empt the obvious methodological objection, because it is a good one. Those two quantities live in different units. Latent drift is an unnormalised Frobenius norm over a 256 by 1024 array. Pixel error is a per-pixel RMSE between zero and one. They are not comparable in magnitude and we never compare them that way. What we compare is each one's relative range across horizon, divided by its own mean. That is dimensionless, so the ratio is invariant to rescaling either coordinate. That invariance is what makes the comparison legitimate at all.
+
+Now the interpretation, and be careful to say only what the data supports. Because latent drift is essentially flat, the movement in pixel error cannot be explained by the latent simply drifting further from the truth. Something is changing in the decoded scene that representation-space distance does not register. A latent-space check would report a calm, stable rollout while the decoded scene degrades.
+
+Add the reassurance: stage E already ruled out the decoder as the source, and the re-injection test shows the effect does not compound, so this is not runaway instability. It is a measurement gap.
+
+If asked how many clips: ten clips, five horizons each, on two disjoint datasets, Something-Something v2 and Kinetics-mini, and the bootstrap resamples whole clips rather than rows, because rows from one clip share a rollout.
+
+---
+
+## Slide 9. The objection
+
+*THE OBJECTION, about 45 seconds. Deliver this as the audience's line, not yours.*
+
+Say it in their voice: fine, the gap is real, but decoding every rollout is expensive and V-JEPA2 does not even ship a decoder. Surely there is some cheap signal you can read straight off the latents that tells you when the rollout is going wrong.
+
+Then concede that this is exactly the right question. If a latent-only confidence signal worked, nobody would need our instrument, and the practical contribution of this work would evaporate. So we went and built the strongest version of that objection we could.
+
+Seven candidates. Six standard ones plus one that is genuinely interesting: an entropy-rate detector transplanted from ecological crash detection, where a falling entropy rate precedes population collapse. That is not a strawman. It is a method purpose-built for early warning of catastrophe in a different domain, ported onto our rollouts.
+
+Then move straight on. Do not linger.
+
+---
+
+## Slide 10. The proxy battery
+
+*THE PROXY BATTERY, about 3 minutes. Four rows, roughly 40 seconds each.*
+
+First say what the seven candidates are, quickly: raw latent distance, cosine distance, normalised L2, ensemble variance, spectral entropy, effective rank, and Mahalanobis distance of the truth from the ensemble spread. Four of them need an ensemble, which we make by perturbing the context six times with Gaussian noise scaled to the tokens' own standard deviation, then rolling each copy forward.
+
+Row one, correlation. Correlate each proxy against real pixel error. The best is normalised L2 at r equals 0.12. Raw latent drift, the thing everyone actually reports, manages 0.013. Cluster-bootstrapped intervals, resampling clips, include zero for all seven. Then immediately name the weakness yourself: at 24 clips a correlation test only has about 80 percent power for r around 0.55, so a confidence interval containing zero does not by itself rule out a moderate relationship. The honest bound is the upper limit of each interval, which ranges from 0.12 for Mahalanobis to 0.50 for ensemble variance. Report those per candidate rather than collapsing them into one claim.
+
+Row two, conformal efficiency, and this is the one that answers the power objection. Coverage of a conformal interval is guaranteed by construction for any score, informative or not, so coverage cannot distinguish them. Width can. We build a prediction interval for pixel error using CV+, leaving out one clip at a time, once with the proxy and once with a proxy-free baseline that just predicts the marginal mean. If a proxy carries information the interval gets narrower. Five of seven are wider, by up to 4.9 percent. The one that narrows does so by 1.3 percent, which is noise. Crucially this does not depend on detecting a correlation at all, so the small-sample objection does not apply to it.
+
+Row three, early warning. This is the entropy-rate detector on its home turf. Define a crash as pixel error crossing the 75th percentile. Across 24 clips, 8 crashed. The detector gave advance warning on zero of them. The Wilson interval on that rate is zero to 32 percent, so even generously, better than roughly one in three is ruled out.
+
+Row four, ranking consistency, which the next slide expands.
+
+Close the slide on the design principle: four differently shaped questions, so they do not inherit each other's weaknesses. That is deliberate.
+
+---
+
+## Slide 11. The certificate
+
+*THE CERTIFICATE, about 2 minutes. If they remember one technical result, make it this one.*
+
+Set up the construction. We have 96 experimental conditions, from two pipeline modes crossed with six perturbation strengths crossed with eight horizons. Define a relation: condition A beats condition B if A produces lower pixel error on more clips than B does. That is a majority vote, paired by clip. Ordinary Condorcet tournament.
+
+Now the logical step, and say it slowly. Suppose there existed any scalar stability index, any single number u, such that A beats B exactly when u of A exceeds u of B. Then the beats relation would be a strict total order. And a strict total order cannot contain a cycle. You cannot have A beating B, B beating C, and C beating A.
+
+We found ten such cycles. One is already enough.
+
+Then draw out why this result is different in kind from everything else in the talk. Every other number here is a statistical estimate, and estimates can be underpowered, which is the criticism you will get all afternoon. This one is a proof by counterexample. It does not estimate anything. It rules out the existence of a scalar ordering over these conditions outright, and no sample-size caveat attaches to a refutation. The cycles are in the data.
+
+Add the supporting number if you want it: the best available scalar summary, a Copeland score, induces a total order that agrees with only 678 of 4,026 decided pairwise comparisons, about 17 percent.
+
+This is the slide to deploy when someone pushes hard on statistical power. It is immune to that objection by construction.
+
+---
+
+## Slide 12. Generalisation
+
+*GENERALISATION, about 2 minutes 30. This is the slide that turns a single-model observation into a claim about a regime.*
+
+Motivate it first. Everything so far describes one frozen predictor queried out of distribution. The obvious worry is that we have found a quirk of V-JEPA2, or of that unusual query. So we ran the identical protocol against two more predictors, chosen to differ from V-JEPA2 and from each other in what is frozen and what is trained.
+
+Family B: a frozen, independently pretrained DINOv2 image encoder, with a small MLP predictor that we trained ourselves, because DINOv2 ships no predictor at all.
+
+Family C: an action-free variant of LeWorldModel. Encoder and predictor trained jointly, end to end, from raw pixels, with no pretrained representation anywhere. A ViT-Tiny encoder, a causal transformer predictor, and the SIGReg anti-collapse regulariser implemented against the paper's own formula.
+
+Now read the table. V-JEPA2 has a ratio of 6.10. Family B is 0.29. Family C is 0.06. All three confidence intervals are disjoint from each other and from 1.0. And notice the direction: on both trained families the latent moves far more than the pixels, which is the opposite of V-JEPA2.
+
+Two independently built, differently trained predictors landing on the same side against V-JEPA2 is a pattern, not a coincidence.
+
+Then the interpretation, and flag it clearly as interpretation rather than measurement. The direction tracks how the predictor relates to its query. V-JEPA2 is frozen and asked something far from its training distribution, and its latent output is nearly horizon-invariant as a result. Both trained families were optimised to make latent distance small, so latent distance is exactly where their horizon dependence surfaces, while their decoders never saw a rollout, so pixel error stays near the floor.
+
+One more subtlety worth a sentence if you have time: residual size and divergence direction are different axes. Family C shares Family B's direction but has a separation residual close to V-JEPA2's. A proxy validated on Family B would not have been safe on Family C.
+
+---
+
+## Slide 13. Limitations
+
+*LIMITATIONS, about 90 seconds. Say this with confidence, not apology. Naming your own boundaries before a reviewer does is what makes everything else credible.*
+
+One, counterfactual faithfulness is untested. Every claim here concerns a fixed, non action-conditioned rollout. None of it says whether the predictor responds correctly to different actions, which is arguably the thing you most want from a world model. That test needs V-JEPA2-AC and a real action-conditioned dataset like DROID or Bridge. The V-JEPA2 checkpoint alone is 4.8 gigabytes against about 18 free, and those datasets run past 100 gigabytes. It is a stated scope boundary, not an oversight, and the question stays open.
+
+Two, the two extra families are lightweight stand-ins, not second state-of-the-art world models. DINOv2 was never pretrained for temporal dynamics and its predictor is a small MLP trained on about 26 clips. The LeWM-style family is an action-free variant, not a reimplementation, trained at batch size 16 against the paper's 128. They answer whether the gap reproduces across regimes. They do not establish that it holds for video world models in general.
+
+Three, sample sizes are small, between 10 and 26 clips depending on the experiment. We mitigate this in two specific ways rather than papering over it: we report confidence interval upper bounds per candidate instead of one blanket claim, and the conformal check exists precisely because it is not power-limited in the same way.
+
+Close with the verifiability point: every bootstrap interval behind every headline number is published as JSON alongside the code.
+
+---
+
+## Slide 14. The deliverable
+
+*THE DELIVERABLE, about 2 minutes. This is what somebody takes away and uses on Monday.*
+
+Frame the shift: the finding is interesting, but the checklist is the product. Six metrics failing on one model is a result. A procedure that tells you whether they fail on yours is a tool.
+
+Gate one, gate the instrument. Train your decoder on real frames only, never on rollouts, and pass leakage and snapping before trusting anything downstream. If it fails, every pixel number you compute afterwards is a statement about your decoder.
+
+Gate two, do not substitute a proxy for gate three. Run this same four-test battery on your own model first. We are not claiming latent-only proxies are impossible in general. We are claiming that on this predictor all seven failed, and that any latent-only confidence signal is unverified on your model until it passes the same battery.
+
+Gate three, decode and compare directly. Report both coordinates, their ratio, and the separation residual. This is the only check in our results that reliably surfaces the divergence.
+
+Gate four, check compounding separately. Decode, re-encode, re-inject, and track whether the error grows or shrinks with further horizon. Without this you cannot distinguish one-shot decode noise from rollout drift that feeds on itself. For the record, on V-JEPA2 it contracts, at a rate of about minus 0.025, which is consistent with a predictor that is largely insensitive to its context under this query.
+
+Emphasise that the order is not decorative. Skipping to gate three is exactly how a decoder artefact gets published as a model finding.
+
+Close on portability: implemented against protocol interfaces, so any model exposing an encoder, a decoder and a state predictor runs all four gates unmodified.
+
+---
+
+## Slide 15. Why it matters
+
+*WHY IT MATTERS, about 90 seconds. Land the so-what before the close.*
+
+Three audiences, and pick the one in the room to dwell on.
+
+Labs shipping latent world models. You are already reporting latent-space distance in your evaluations, because it is the only number available. This work says what that number does and does not tell you about the scene, and gives you a way to find out for your own checkpoint.
+
+Robotics and planning teams. Anything that plans against a rolled-forward latent inherits this gap directly. If your stack has a confidence signal derived from latent-space quantities, and it has not been through this battery, it is unverified on your model. That is not a hypothetical: an entropy-rate detector that works for ecological collapse gave zero advance warning on ours.
+
+Reviewers and evaluation work. This is a reusable, model-agnostic checklist, with the confidence intervals and the code published alongside every headline number.
+
+Then the closing argument of the technical section. The bet the field is making is that latent-space evaluation is sufficient. On a real frozen predictor, on real video, across two disjoint datasets, it is not, and no cheap substitute we could construct closed the gap. That is the finding. The protocol is what you do about it.
+
+---
+
+## Slide 16. The close
+
+*THE CLOSE, about 60 seconds. End on the artefact, not on a summary.*
+
+Say that everything in this talk is on one public page: the research question, the full mathematical formulation with the equation each pipeline step evaluates, the live-polling results, the per-clip rollout gallery, the measurement-gap experiments, the interpretation, the protocol, all three model families, and the limitations. Plus the code, the raw CSVs, and the bootstrap intervals behind every number.
+
+Point at the three cards so they know where to land.
+
+Sections 5 to 7 are the formulation: every step with its equation and a plain-language gloss underneath, so you can read it without being a JEPA specialist.
+
+Section 9 is the gallery, and this is the one to show if you have a laptop open. Six real clips, each with a drag handle between the real future frame and our decoded prediction. It is the most immediate way to feel what the numbers are describing, and it shows the divergence is not uniform: some clips show pixel error moving six times more than latent drift, others show the two moving almost together. That per-clip spread is itself why no single latent-space threshold generalises.
+
+Sections 10 to 13 are the battery, the interpretation and the families.
+
+Then the ask, adapted to the room. If it is a research audience: run the four gates on your model and tell us whether the direction of the gap tracks what we predict, frozen and off-distribution versus trained toward the target. If it is a hiring or funding conversation: the open piece is counterfactual faithfulness, which needs an action-conditioned model and a robot-trajectory dataset, and that is the next experiment.
+
+Invite them to open the page while you are still in the room.
+
+---

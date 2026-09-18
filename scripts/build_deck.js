@@ -1,4 +1,5 @@
 const P = require('pptxgenjs');
+const NOTES = require('./deck_script.js');
 const pres = new P();
 pres.layout = 'LAYOUT_WIDE';            // 13.333 x 7.5 in
 pres.title = 'Horizon Ladder';
@@ -53,7 +54,7 @@ function card(s, x, y, w, h, fill, line) {
     margin: 0, fontFace: MONO, fontSize: 12, color: BLUE });
   s.addText('V-JEPA2  /  DINOv2  /  LeWM-style JEPA', { x: W - M - 5.4, y: H - 1.1, w: 5.4, h: 0.3,
     isTextBox: true, margin: 0, fontFace: MONO, fontSize: 12, color: '6B7684', align: 'right' });
-  s.addNotes('Open on the one-sentence version: a world model predicts the future in latent space, and nobody can check that prediction against pixels, because the future it predicted never happened. This talk is about building the check anyway, and about what we found when we asked whether a cheaper check would do.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 2 setup */
@@ -81,7 +82,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 5.1, w: 10.8, h: 0.8, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 15,
       color: DIMD, lineSpacingMultiple: 1.35 });
   foot(s, 'Setup', true);
-  s.addNotes('Set the frame quickly. This is how every JEPA-style world model works: encode, roll forward, act. The industry is now betting on step three. Nobody verifies step two against pixels.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 3 problem */
@@ -105,7 +106,7 @@ function card(s, x, y, w, h, fill, line) {
              { text: 'do those two numbers even move together?', options: { color: DIML } }],
     { x: M, y: 5.3, w: 11.2, h: 0.5, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 18 });
   foot(s, 'The problem', false);
-  s.addNotes('State the gap plainly. Everyone reports latent-space distance because it is the only thing available. The assumption underneath is that latent distance stands in for scene correctness. That assumption had never been tested on a real frozen predictor.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 4 prior work */
@@ -132,7 +133,7 @@ function card(s, x, y, w, h, fill, line) {
       fontSize: 14, color: i === 1 ? TXD : DIMD, bold: i === 1, lineSpacingMultiple: 1.4 });
   });
   foot(s, 'Prior work', true);
-  s.addNotes('This is the novelty claim, and it is a claim about the question, not about a technique. Every inversion method in the literature optimises for reconstruction quality. We need the opposite: an instrument so weak that whatever comes out has to have come from the latent.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 5 the move */
@@ -146,7 +147,7 @@ function card(s, x, y, w, h, fill, line) {
   s.addText('One linear layer per token. Plain pixel loss. No perceptual, adversarial or diffusion objective. Patch j of the output is a function of token j and nothing else, so there is nowhere for invented detail to come from.',
     { x: M, y: 3.9, w: 10.6, h: 1.4, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 18,
       color: 'C5DAF3', lineSpacingMultiple: 1.4 });
-  s.addNotes('This is the single design decision the whole project rests on. A diffusion decoder would produce a beautiful, plausible frame from a latent carrying almost nothing, and you would never know. We give up image quality to buy the guarantee that what we see is evidence about the latent.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 6 system */
@@ -161,7 +162,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 5.85, w: 11.2, h: 0.6, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 13,
       color: DIMD, lineSpacingMultiple: 1.35 });
   foot(s, 'The system', true);
-  s.addNotes('Walk it left to right once. Context in, frozen encoder, frozen predictor asked a question it was never trained on, deliberately weak decoder, then compare against the real future frame that the model never saw. The dashed box at the bottom is the part people skip, and it is the part that makes the numbers above it mean anything.');
+  s.addNotes(NOTES[n]);
 }
 
 
@@ -192,7 +193,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 5.45, w: 11.2, h: 0.7, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 15,
       color: DIML, lineSpacingMultiple: 1.35 });
   foot(s, 'Honesty gate', false);
-  s.addNotes('Credibility slide. Before we show a single headline number, we show the instrument passing its own tests, on real encoded latents, with no predictor involved. If either check failed, everything downstream would be measuring our decoder.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 8 finding 1 */
@@ -226,7 +227,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: rx, y: 4.7, w: CW - 6.3, h: 0.9, isTextBox: true, margin: 0, fontFace: SANS,
       fontSize: 12.5, color: DIMD, lineSpacingMultiple: 1.4 });
   foot(s, 'Finding 1', true);
-  s.addNotes('The headline. Under a causal query the frozen V-JEPA2 predictor was never trained for, latent drift barely moves while pixel error moves six times more, and the confidence interval on that ratio excludes one comfortably. This is the measurement gap.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 9 objection */
@@ -240,7 +241,7 @@ function card(s, x, y, w, h, fill, line) {
   s.addText('We took that seriously and tested seven, including one purpose-built for early crash warning in a different field entirely.',
     { x: M, y: 4.4, w: 10.4, h: 0.9, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 18,
       color: 'C5DAF3', lineSpacingMultiple: 1.4 });
-  s.addNotes('This is the question every reviewer and every engineer asks, and it is the right question. If a cheap latent-space confidence signal worked, nobody would need our instrument. So we went and built the strongest version of that objection we could.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 10 battery */
@@ -268,7 +269,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 5.75, w: 11.4, h: 0.7, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 13,
       color: DIMD, lineSpacingMultiple: 1.35 });
   foot(s, 'The proxy battery', true);
-  s.addNotes('Four differently shaped questions. Correlation is the obvious one and is underpowered at 24 clips, so we added a check that is not power-limited: does the proxy actually narrow a prediction interval? It does not. Then early warning, then ordering.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 11 certificate */
@@ -296,7 +297,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: rx, y: 4.55, w: colw, h: 0.8, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 15,
       color: DIML, lineSpacingMultiple: 1.4 });
   foot(s, 'Intransitivity', false);
-  s.addNotes('If you only remember one technical result, make it this one. It is not a p-value that could evaporate with more data. A single three-cycle is a formal certificate that no single number can order these conditions. We found ten.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 12 families */
@@ -332,7 +333,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 4.75, w: 11.5, h: 1.1, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 14,
       color: DIMD, lineSpacingMultiple: 1.4 });
   foot(s, 'Generalisation', true);
-  s.addNotes('We ran the identical protocol on two more predictors built and trained completely differently. The gap does not vanish, it inverts, and the two trained families agree with each other against V-JEPA2. That gives us a much more specific claim than saying the gap is V-JEPA2 specific.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 13 limits */
@@ -358,7 +359,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 5.6, w: 11.4, h: 0.7, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 14,
       color: DIML, lineSpacingMultiple: 1.35 });
   foot(s, 'Limitations', false);
-  s.addNotes('Say this slide with confidence, not apology. Naming your own boundaries before a reviewer does is what separates a finding from a claim. Every number on the site ships with its bootstrap interval.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 14 protocol */
@@ -389,7 +390,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 5.6, w: 11.4, h: 0.6, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 14,
       color: DIMD, lineSpacingMultiple: 1.35 });
   foot(s, 'The protocol', true);
-  s.addNotes('This is what somebody actually takes away and uses. The finding is interesting; the checklist is the product. Order matters: skipping straight to gate three is how a decoder artefact gets published as a model finding.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 15 who */
@@ -416,7 +417,7 @@ function card(s, x, y, w, h, fill, line) {
     { x: M, y: 5.35, w: 11.4, h: 0.85, isTextBox: true, margin: 0, fontFace: SANS, fontSize: 16,
       bold: true, color: TXL, lineSpacingMultiple: 1.35 });
   foot(s, 'Why it matters', false);
-  s.addNotes('Land the so-what. This is not a curiosity about one checkpoint. Latent-space evaluation is the default across the field because it is the only thing available, and we now have evidence about what it misses and a protocol for checking it on your own model.');
+  s.addNotes(NOTES[n]);
 }
 
 /* ---------------------------------------------------------------- 16 close */
@@ -443,7 +444,7 @@ function card(s, x, y, w, h, fill, line) {
     s.addText(b, { x: x + 0.28, y: 4.95, w: cw - 0.56, h: 0.72, isTextBox: true, margin: 0,
       fontFace: SANS, fontSize: 13, color: TXL, lineSpacingMultiple: 1.3 });
   });
-  s.addNotes('Close on the artefact, not on a summary. Everything claimed in this deck is on one page with the code, the confidence intervals and the raw CSVs behind it. Invite them to open it while you are still in the room.');
+  s.addNotes(NOTES[n]);
 }
 
 pres.writeFile({ fileName: 'outputs/horizon-ladder.pptx' })
