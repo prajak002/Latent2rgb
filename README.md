@@ -94,8 +94,8 @@ or see `outputs/dashboard.html`.
    why pixel-space checking (however minimal the decoder) isn't optional
    here.
 
-3. **Per-clip evidence, not an averaged artifact.**
-   `outputs/results_gallery.html` shows six real clips independently, each
+3. **Per-clip evidence, not an averaged artifact.** The rollout gallery
+   (`outputs/dashboard.html#gallery-sec`) shows six real clips independently, each
    annotated with its own `latent_drift`/`pixel_error` horizon-range. The
    divergence isn't uniform across clips — some show pixel_error moving
    ~6x more than latent_drift across k=2→32, others show the two moving
@@ -408,8 +408,24 @@ python -m http.server 8090 --directory outputs
 
 ## Website
 
-`outputs/dashboard.html` — the live dashboard (research question, proposed
-solution, dataset, methodology, mathematical background, and live-polling
-results). `outputs/gallery.html` / `outputs/site.html` are earlier snapshot
-pages kept for reference. `outputs/frames/` are the static sample frames
-(true / floor-reconstruction / rollout-decode) shown in the gallery.
+`outputs/dashboard.html` is the whole thing on one page — research question,
+proposed solution, dataset, methodology, the full mathematical formulation
+(every pipeline step with the equation it evaluates, KaTeX-rendered, plus a
+system-design diagram), live-polling Stage D/E/F results, the drag-compare
+rollout gallery, the measurement-gap results, the mathematical interpretation,
+the protocol, the two extra model families, and limitations. A sticky section
+nav runs down all fourteen sections.
+
+`outputs/math.html` and `outputs/results_gallery.html` are now redirect stubs
+into that page's `#design` and `#gallery-sec` anchors (they used to be separate
+pages). `outputs/gallery.html` / `outputs/site.html` are earlier snapshot pages
+kept for reference. `outputs/frames/` are the static sample frames (true /
+floor-reconstruction / rollout-decode) shown in the live feed;
+`outputs/videos/` are the gallery's clip triples.
+
+Section 6 opens with an illustrated overview of the protocol
+(`outputs/system_diagram.webp`, 146 KB; the full-resolution original is
+`outputs/system_diagram.png`), followed by the same pipeline as an inline SVG
+schematic carrying the equation each step evaluates.
+`outputs/system_diagram_prompt.md` holds the image-generation prompts that
+produced it, plus Graphviz (`outputs/system_diagram.dot`) and Mermaid sources.

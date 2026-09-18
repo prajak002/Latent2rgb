@@ -1,0 +1,38 @@
+digraph horizon_ladder {
+  rankdir=LR; bgcolor="#eef1f4"; splines=ortho; nodesep=0.45; ranksep=0.55;
+  node [shape=box, style="rounded,filled", fillcolor="#dde3e9", color="#ccd4dc",
+        fontname="Helvetica", fontsize=11, margin="0.18,0.12"];
+  edge [color="#848f9c", arrowsize=0.7, fontname="Courier", fontsize=9];
+
+  subgraph cluster_proxy {
+    label="S7 · candidate latent-only proxies — all failed";
+    fontname="Courier"; fontsize=10; color="#ccd4dc"; style=dashed;
+    perturb [label="perturb context\nZ + εσ(Z)ξ"];
+    spread  [label="ensemble spread\nSVD → H, eᴴ, Var, d_M"];
+    proxies [label="7 scalar proxies g(·)"];
+    verdict [label="can g replace the pixel check?\nno", fillcolor="#eef1f4"];
+    perturb -> spread -> proxies -> verdict;
+  }
+
+  s1 [label="S1 · causal window\nL = 2⌊(t+1)/2⌋"];
+  enc [label="E · encode (frozen)\nZ_t ∈ ℝ^(N×D)"];
+  s3 [label="S3 · causal query\nẐ_k = P(Z_t; M_x, M_y)"];
+  s5 [label="S5 · decode\nx̂_k = D(Ẑ_k)"];
+  s6 [label="S6 · compare\nδ_k = ‖Ẑ_k − Z*_k‖\nε_k = RMSE(x̂_k, x*_k)\nρ = R[ε]/R[δ]", fillcolor="#eef1f4"];
+  gt [label="S2/S4 · ground truth\ns_k = ⌊(t+k)/τ⌋ · Z*_k = E(x at s_k)"];
+
+  subgraph cluster_gate {
+    label="admissibility — run before trusting any ε";
+    fontname="Courier"; fontsize=10; color="#ccd4dc"; style=dashed;
+    floor [label="S6b · floor\nε_floor = E[RMSE(D(E(x)), x)]"];
+    leak  [label="S8a · leakage\nΓ = ‖D(z_A)−x_B‖ − ‖D(z_A)−x_A‖"];
+    snap  [label="S8b · snapping\nκ = max |e_{i+1} − 2e_i + e_{i−1}|"];
+  }
+
+  s9 [label="S9 · re-injection\nd_j = ‖P(Ẑ, j) − P(E(D(Ẑ)), j)‖\nrate = slope of d_j", fillcolor="#eef1f4"];
+
+  s1 -> enc -> s3 -> s5 -> s6;
+  s1 -> gt; gt -> s6;
+  s5 -> s9 [style=dashed];
+  s9 -> s3 [style=dashed, constraint=false, label="compounding?"];
+}
