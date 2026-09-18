@@ -231,6 +231,31 @@
       background:var(--grid); border-radius:8px; padding:14px 16px; margin:0 0 14px; overflow-x:auto;}
   pre .c{color:var(--text-mute);}
   table.scripts td:first-child{font-family:'IBM Plex Mono', monospace; font-size:0.82rem; color:var(--text);}
+
+  /* ---------- side-by-side step cards and definition rows ---------- */
+  .wide{width:min(1180px, calc(100vw - 40px)); position:relative; left:50%; transform:translateX(-50%);}
+  .step-body{display:grid; grid-template-columns:minmax(0,0.82fr) minmax(0,1.18fr); gap:26px; align-items:start;}
+  .step-prose p{margin-bottom:10px;}
+  .step-prose p:last-child{margin-bottom:0;}
+  .step-math > .eq:first-child{margin-top:0;}
+  .step-math .src{margin-top:12px;}
+
+  .def-row{display:grid; grid-template-columns:minmax(0,0.82fr) minmax(0,1.18fr); gap:26px;
+           align-items:start; padding-block:18px; border-top:1px solid var(--grid);}
+  .def-row:first-of-type{border-top:none; padding-top:6px;}
+  .def-label h3{margin:0 0 8px;}
+  .def-label p{margin-bottom:0; font-size:0.92rem;}
+  .def-math > .eq:first-child{margin-top:0;}
+
+  .gloss{font-size:0.86rem; line-height:1.6; color:var(--text-dim); font-style:italic;
+         margin-top:12px; padding-left:13px; border-left:2px solid var(--text-mute);}
+  .eq .note + .gloss{margin-top:10px;}
+
+  @media (max-width:860px){
+    .wide{width:100%; left:auto; transform:none;}
+    .step-body, .def-row{grid-template-columns:1fr; gap:6px;}
+    .def-row{padding-block:14px;}
+  }
   figure.plate{margin:0 0 24px;}
   figure.plate img{width:100%; height:auto; display:block; border-radius:10px;
                    border:1px solid var(--border); background:#f3f1ed;}
@@ -253,38 +278,38 @@
 
 
   <div class="section" id="contribution" style="border-top:none; padding-top:0;">
-    <h2><span class="num">&mdash;</span>Contribution</h2>
+    <h2>Contribution</h2>
     <ul class="plain">
       <li><b>A protocol for a question prior methods can't ask.</b>
       Representation-inversion methods (Mahendran &amp; Vedaldi, Nash et al.,
       FAE, DPS, SPADE, Neuralangelo, GeoDE) invert the latent of an image
       that already exists. This inverts a <i>rolled-forward</i> latent, for
       a frame that was never observed, with a decoder kept deliberately too
-      weak to hallucinate &mdash; so the output is evidence about the
+      weak to hallucinate, so the output is evidence about the
       latent, not about the decoder.</li>
       <li><b>A measurement-gap finding, with confidence intervals, not bare
       point estimates.</b> Section 8 below shows pixel_error moving several
       times more than latent_drift under horizon. Section 10 shows that six
-      candidate latent-only proxies for that divergence &mdash; including an
-      entropy-rate metric ported from ecological crash detection &mdash; all
+      candidate latent-only proxies for that divergence, including an
+      entropy-rate metric ported from ecological crash detection, all
       fail to substitute for it: weak correlation whose 95% CIs include zero
       for all six candidates, zero early-warning lead time (Wilson 95% CI
       [0%, 32%]), a sign flip across CIs that don't overlap between an
       unrelated pipeline choice, and a pairwise condition ranking that's
-      mostly intransitive (10 explicit 3-cycles &mdash; a formal violation,
+      mostly intransitive (10 explicit 3-cycles, a formal violation,
       not a sampling artifact).</li>
       <li><b>Per-clip evidence.</b> The <a href="#gallery-sec">rollout
       gallery</a> shows this isn't an averaged artifact: six real clips,
       each annotated with its own latent_drift/pixel_error range, and the
-      divergence ratio between them varies clip to clip &mdash; consistent
+      divergence ratio between them varies clip to clip, consistent
       with why no single latent-space threshold generalizes.</li>
-      <li><b>A second, differently-trained predictor &mdash; and the gap
+      <li><b>A second, differently-trained predictor, and the gap
       changes shape.</b> Section 13 runs the identical protocol against a
       frozen DINOv2 encoder paired with a small predictor trained from
       scratch on the same clips. The gap doesn't just shrink or vanish: its
       direction inverts (latent_drift moves more than pixel_error here, not
       less), suggesting the gap tracks frozen, off-distribution querying
-      specifically &mdash; not latent-only prediction as a category.</li>
+      specifically, not latent-only prediction as a category.</li>
     </ul>
   </div>
 
@@ -297,7 +322,7 @@
       error, once re-injected into the rollout, compound as k grows?
     </p>
     <p>
-      No prior representation-inversion method can ask this &mdash; each inverts a latent of an image that already
+      No prior representation-inversion method can ask this: each inverts a latent of an image that already
       exists. A rolled-forward latent represents a future that never happened.
     </p>
   </div>
@@ -309,7 +334,7 @@
       loss, no perceptual/adversarial/diffusion loss) to a predictor that genuinely ships no decoder (V-JEPA2).
       A stronger decoder would hallucinate detail the latent doesn't carry, hiding the failure being measured.</li>
       <li><b>Validation.</b> Before trusting any result, check the instrument itself isn't the source of the
-      signal &mdash; does the decoder leak context or snap to a generic output.</li>
+      signal: does the decoder leak context or snap to a generic output.</li>
       <li><b>Compounding test.</b> Decode a rolled-forward latent, re-encode it, re-inject it into the rollout,
       and check whether the resulting error grows or shrinks with further horizon.</li>
     </ul>
@@ -333,21 +358,21 @@
       token sequence, 256 tokens per 2-frame tubelet.</li>
       <li><b>Causal query:</b> construct <code>masks_x</code> (context) / <code>masks_y</code> (target tubelet at
       <code>t+k</code>), one predictor call per <code>k &isin; {2,4,8,16,32}</code>. Out-of-distribution for the
-      predictor &mdash; it was trained to fill gaps in an already-observed clip, never to extrapolate a causal
+      predictor: it was trained to fill gaps in an already-observed clip, never to extrapolate a causal
       past into an unseen future.</li>
       <li><b>Decode:</b> the linear decoder turns predicted tokens back into 2 RGB frames.</li>
       <li><b>Compare:</b> latent_drift, pixel_error, and pixel_error read against the decoder's own real-frame
       reconstruction floor.</li>
       <li><b>Honesty checks:</b> context leakage (decode clip A's latent, compare to clip A vs. clip B) and
-      snapping (interpolate between two real clips' latents, check for smooth vs. jump degradation) &mdash; on
-      real encoded latents, no predictor involved.</li>
+      snapping (interpolate between two real clips' latents, check for smooth vs. jump degradation), on
+      real encoded latents, with no predictor involved.</li>
       <li><b>Re-injection:</b> decode + re-encode the predicted tubelet at k=8, extend the context two ways (raw
       vs. round-tripped), query <code>j &isin; {2,4}</code> further, compare.</li>
       <li><b>Cross-check:</b> every step repeated independently on both datasets.</li>
     </ol>
     <p style="margin-top:10px;">
       Not run: counterfactual faithfulness (rolling one state under two different actions). The base predictor
-      has no action input &mdash; this needs V-JEPA2-AC and a real action-conditioned dataset, not more compute
+      has no action input, so this needs V-JEPA2-AC and a real action-conditioned dataset, not more compute
       on this setup.
     </p>
   </div>
@@ -363,7 +388,7 @@
       <thead><tr><th>Symbol</th><th>Type</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td>$x = (x_0,\dots,x_{T-1})$</td><td>$[0,1]^{C\times T\times H\times W}$</td><td>a real clip; $C{=}3$, $H{=}W{=}256$, values in raw pixel space</td></tr>
-        <tr><td>$\tau$</td><td>$2$</td><td>tubelet size — the smallest temporal unit the encoder resolves</td></tr>
+        <tr><td>$\tau$</td><td>$2$</td><td>tubelet size: the smallest temporal unit the encoder resolves</td></tr>
         <tr><td>$p$</td><td>$16$</td><td>spatial patch size; grid is $(H/p)\times(W/p) = 16\times16$</td></tr>
         <tr><td>$n$</td><td>$(H/p)(W/p) = 256$</td><td>tokens per tubelet</td></tr>
         <tr><td>$D$</td><td>$1024$</td><td>embedding width (encoder and predictor output share it)</td></tr>
@@ -375,20 +400,21 @@
     </table>
     <p>
       Token order is fixed by the encoder's <code>PatchEmbed3D</code> flatten, and the causal mask arithmetic in
-      step S3 is only valid because of it — time-major, then row-major within a time slot:
+      step S3 is only valid because of it: time-major, then row-major within a time slot:
     </p>
     <div class="eq">
       $$\operatorname{idx}(s,h,w) \;=\; s\,n \;+\; h\,\tfrac{W}{p} \;+\; w ,\qquad s \in \{0,\dots,31\},\;\; h,w \in \{0,\dots,15\}$$
       <div class="note">s = temporal slot (covers frames 2s, 2s+1) · grid_depth 32 comes from the predictor's nominal 64-frame construction</div>
-    </div>
+      <div class="gloss">Where each token sits in the flattened grid: walk time first, then rows, then columns. Every mask index in S3 depends on this order being exactly right.</div>
+      </div>
   </div>
 
   <div class="section" id="design">
     <h2><span class="num">6.</span>System design</h2>
     <p>
       One pass of the protocol on one <span style="white-space:nowrap">(clip, start $t$, horizon $k$)</span> triple.
-      The solid path is the measurement; the dashed paths are the two things that make the measurement admissible
-      — the decoder-honesty gate (S8) and the floor (S6b) — plus the re-injection loop (S9).
+      The solid path is the measurement; the dashed paths are the two things that make the measurement admissible:
+      the decoder-honesty gate (S8) and the floor (S6b), plus the re-injection loop (S9).
     </p>
 
     <figure class="plate">
@@ -410,7 +436,7 @@
 
         <!-- top band: proxy battery -->
         <rect class="band" x="8" y="8" width="944" height="122"/>
-        <text class="bandlbl" x="24" y="28">S7 · candidate latent-only proxy battery — tested, failed</text>
+        <text class="bandlbl" x="24" y="28">S7 · candidate latent-only proxy battery: tested, failed</text>
 
         <rect class="bx-fill" x="30" y="42" width="152" height="68" rx="7"/>
         <text class="lbl" x="106" y="64" text-anchor="middle">perturb context</text>
@@ -450,7 +476,7 @@
         <rect class="bx-fill" x="380" y="200" width="170" height="74" rx="7"/>
         <text class="lbl" x="465" y="222" text-anchor="middle">S3 · P · causal query</text>
         <text class="mth" x="465" y="240" text-anchor="middle">Ẑ_k = P(Z_t ; M_x , M_y)</text>
-        <text class="sub" x="465" y="258" text-anchor="middle">max M_x &lt; min M_y — OOD</text>
+        <text class="sub" x="465" y="258" text-anchor="middle">max M_x &lt; min M_y, OOD</text>
 
         <rect class="bx-fill" x="590" y="200" width="130" height="74" rx="7"/>
         <text class="lbl" x="655" y="224" text-anchor="middle">S5 · D · decode</text>
@@ -473,14 +499,14 @@
         <rect class="bx-fill" x="110" y="320" width="420" height="66" rx="7"/>
         <text class="lbl" x="320" y="342" text-anchor="middle">S2 / S4 · ground truth at the target slot</text>
         <text class="mth" x="320" y="360" text-anchor="middle">s_k = ⌊(t+k)/τ⌋ · x*_k = x_(τs_k+1) · Z*_k = E(x_(τs_k : τs_k+τ))</text>
-        <text class="sub" x="320" y="377" text-anchor="middle">the frame the rollout claims to predict — never seen by P</text>
+        <text class="sub" x="320" y="377" text-anchor="middle">the frame the rollout claims to predict, never seen by P</text>
 
         <path class="ar" d="M100 278 V353 H106" marker-end="url(#hm)"/>
         <path class="ar" d="M530 353 H849 V294" marker-end="url(#hm)"/>
 
         <!-- admissibility band -->
         <rect class="band" x="8" y="400" width="562" height="200"/>
-        <text class="bandlbl" x="24" y="420">admissibility — run before trusting any ε</text>
+        <text class="bandlbl" x="24" y="420">admissibility: run before trusting any ε</text>
 
         <rect class="bx-fill" x="26" y="432" width="252" height="66" rx="7"/>
         <text class="lbl" x="152" y="454" text-anchor="middle">S6b · decoder floor</text>
@@ -504,7 +530,7 @@
         <text class="mth" x="775" y="497" text-anchor="middle">d_j = ‖P(Ẑ_kr , j) − P(Z′, j)‖ ≈ ‖J·η‖</text>
         <text class="mth" x="775" y="516" text-anchor="middle">rate = slope of d_j over j</text>
         <text class="sub" x="775" y="540" text-anchor="middle">rate &gt; 0 compounding · rate &lt; 0 contracting</text>
-        <text class="sub" x="775" y="558" text-anchor="middle" fill="var(--pass)">measured −0.025 (SSv2) — contracting</text>
+        <text class="sub" x="775" y="558" text-anchor="middle" fill="var(--pass)">measured −0.025 (SSv2), contracting</text>
 
         <path class="ar-d" d="M655 278 V428" marker-end="url(#hm)"/>
       </svg>
@@ -514,186 +540,274 @@
       </figcaption>
     </figure>
 
+    <div class="wide">
     <div class="step">
       <div class="step-head"><span class="step-id">S1</span><span class="step-title">Causal context window</span></div>
-      <p>Take the largest whole number of tubelets that ends at or before frame $t$. Nothing at or after $t+1$ may enter.</p>
-      <div class="eq">
+      <div class="step-body">
+        <div class="step-prose">
+          <p>Take the largest whole number of tubelets that ends at or before frame $t$. Nothing at or after $t+1$ may enter.</p>
+        </div>
+        <div class="step-math">
+          <div class="eq">
         $$L_t = \tau\left\lfloor \tfrac{t+1}{\tau} \right\rfloor, \qquad Z_t = E_\theta\!\left(x_{0:L_t}\right) \in \mathbb{R}^{N_{\text{ctx}}\times D}, \qquad N_{\text{ctx}} = \tfrac{L_t}{\tau}\,n$$
-        <div class="note">requires L_t ≥ τ — at least one full tubelet of context</div>
+        <div class="note">requires L_t ≥ τ, at least one full tubelet of context</div>
+        <div class="gloss">Round the context down to a whole number of tubelets, then encode it. Nothing at or after the next frame is allowed in.</div>
       </div>
-      <div class="src"><b>in</b> clip $x$, start $t$ &nbsp;·&nbsp; <b>out</b> $Z_t$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/data.py · RolloutBuilder.build</code></div>
+          <div class="src"><b>in</b> clip $x$, start $t$ &nbsp;·&nbsp; <b>out</b> $Z_t$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/data.py · RolloutBuilder.build</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
       <div class="step-head"><span class="step-id">S2</span><span class="step-title">Target slot resolution</span></div>
-      <p>
+      <div class="step-body">
+        <div class="step-prose">
+          <p>
         Horizon $k$ is expressed in raw frames, but the smallest addressable unit is a tubelet. $k$ resolves to the
         slot containing frame $t+k$, and the later frame of that pair is the ground-truth frame compared against.
       </p>
-      <div class="eq">
+        </div>
+        <div class="step-math">
+          <div class="eq">
         $$s_k = \left\lfloor \tfrac{t+k}{\tau} \right\rfloor, \qquad x^\star_k = x_{\tau s_k + 1}, \qquad \text{valid iff}\quad \underbrace{s_k \ \ge\ \tfrac{L_t}{\tau}}_{\text{no overlap with context}} \ \ \wedge\ \ \underbrace{s_k < 32}_{\text{predictor grid depth}}$$
         <div class="note">the left condition is why k=1 is dropped: from an even t it would target a slot already inside the context</div>
+        <div class="gloss">Turn a horizon measured in frames into the tubelet that contains it, and take the later of that tubelet's two frames as the one to score against.</div>
       </div>
-      <div class="src"><b>out</b> $s_k$, $x^\star_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/data.py</code>, <code>vjepa_adapter.py · rollout</code></div>
+          <div class="src"><b>out</b> $s_k$, $x^\star_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/data.py</code>, <code>vjepa_adapter.py · rollout</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-id">S3</span><span class="step-title">Masked causal query — the out-of-distribution step</span></div>
-      <p>
+      <div class="step-head"><span class="step-id">S3</span><span class="step-title">Masked causal query: the out-of-distribution step</span></div>
+      <div class="step-body">
+        <div class="step-prose">
+          <p>
         The predictor is addressed by two index sets into the flattened token grid: $M_x$ gathers the context it is
         given, $M_y$ names the positions it must fill.
       </p>
-      <div class="eq">
-        $$M_x = \{0,\dots,N_{\text{ctx}}-1\}, \qquad M_y = \{\,n s_k,\ \dots,\ n s_k + n - 1\,\}$$
-        $$\hat{Z}_k \;=\; P_\phi\!\left(Z_t;\, M_x,\, M_y\right) \ \in\ \mathbb{R}^{n\times D}$$
-      </div>
-      <p>
+          <p>
         This is one forward pass, not a $k$-step loop: the predictor answers <i>what is at this position</i> given
         context. The regime is what makes it out-of-distribution, and it can be stated exactly. Let $q_{\text{train}}$
-        be the mask distribution V-JEPA2 was pretrained under — context and target both sampled across an
+        be the mask distribution V-JEPA2 was pretrained under, where context and target are both sampled across an
         already-observed clip. Then the masks used here are a null event under it:
       </p>
-      <div class="eq">
-        $$\Pr_{(M_x,M_y)\sim q_{\text{train}}}\Big[\ \max_{i \in M_x}\big\lfloor i/n \big\rfloor \;<\; \min_{j \in M_y}\big\lfloor j/n \big\rfloor \ \Big] \;=\; 0$$
-        <div class="note">strict temporal separation — every context token precedes every target token. Architecturally constructible, never trained. Every number downstream characterises the frozen predictor <em>under this query</em>, not its native task.</div>
+        </div>
+        <div class="step-math">
+          <div class="eq">
+        $$M_x = \{0,\dots,N_{\text{ctx}}-1\}, \qquad M_y = \{\,n s_k,\ \dots,\ n s_k + n - 1\,\}$$
+        $$\hat{Z}_k \;=\; P_\phi\!\left(Z_t;\, M_x,\, M_y\right) \ \in\ \mathbb{R}^{n\times D}$$
+        <div class="gloss">Hand the predictor every context token as M_x, and ask it to fill exactly the target tubelet's positions as M_y. One forward pass, not a k-step loop.</div>
       </div>
-      <div class="src"><b>in</b> $Z_t$, $s_k$ &nbsp;·&nbsp; <b>out</b> $\hat Z_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/vjepa_adapter.py · VJEPA2Predictor.rollout</code></div>
+          <div class="eq">
+        $$\Pr_{(M_x,M_y)\sim q_{\text{train}}}\Big[\ \max_{i \in M_x}\big\lfloor i/n \big\rfloor \;<\; \min_{j \in M_y}\big\lfloor j/n \big\rfloor \ \Big] \;=\; 0$$
+        <div class="note">strict temporal separation: every context token precedes every target token. Architecturally constructible, never trained. Every number downstream characterises the frozen predictor <em>under this query</em>, not its native task.</div>
+        <div class="gloss">The chance that pretraining ever showed this model a mask shaped like ours is exactly zero. Here every context token comes strictly before every target token, and training never did that.</div>
+      </div>
+          <div class="src"><b>in</b> $Z_t$, $s_k$ &nbsp;·&nbsp; <b>out</b> $\hat Z_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/vjepa_adapter.py · VJEPA2Predictor.rollout</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
       <div class="step-head"><span class="step-id">S4</span><span class="step-title">Ground-truth latent</span></div>
-      <p>The same encoder, applied to the real tubelet the rollout claims to have predicted.</p>
-      <div class="eq">
+      <div class="step-body">
+        <div class="step-prose">
+          <p>The same encoder, applied to the real tubelet the rollout claims to have predicted.</p>
+        </div>
+        <div class="step-math">
+          <div class="eq">
         $$Z^\star_k \;=\; E_\theta\!\left(x_{\tau s_k\,:\,\tau s_k + \tau}\right) \in \mathbb{R}^{n\times D}$$
-        <div class="note">valid to compare against Ẑ_k because the predictor's out_embed_dim defaults to the encoder's D — both live in the same space</div>
+        <div class="note">valid to compare against Ẑ_k because the predictor's out_embed_dim defaults to the encoder's D, so both live in the same space</div>
+        <div class="gloss">Encode the real tubelet the rollout was trying to predict. This is the thing the prediction gets measured against.</div>
       </div>
-      <div class="src"><b>out</b> $Z^\star_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/data.py</code></div>
+          <div class="src"><b>out</b> $Z^\star_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/data.py</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-id">S5</span><span class="step-title">Decode — the instrument</span></div>
-      <p>
+      <div class="step-head"><span class="step-id">S5</span><span class="step-title">Decode: the instrument</span></div>
+      <div class="step-body">
+        <div class="step-prose">
+          <p>
         A single linear map per token, a sigmoid, and the exact inverse of the encoder's patch-flatten. No cross-token
         mixing anywhere in it.
       </p>
-      <div class="eq">
-        $$\big[D_\psi(\hat Z)\big]_{\text{patch } j} \;=\; \operatorname{fold}\Big(\sigma\big(W \hat z_j + b\big)\Big), \qquad W \in \mathbb{R}^{(C\tau p^2)\times D},\ \ C\tau p^2 = 1536$$
-        <div class="note">patch j of the output depends on token j and on nothing else · representative decoded frame: x̂_k = D(Ẑ_k)[:, τ−1]</div>
-      </div>
-      <p>
+          <p>
         That factorisation is the whole honesty argument, and §11.4 states it as a constraint rather than a hope.
       </p>
-      <div class="src"><b>in</b> $\hat Z_k$ &nbsp;·&nbsp; <b>out</b> $\hat x_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/decoder.py · MinimalDecoder</code></div>
+        </div>
+        <div class="step-math">
+          <div class="eq">
+        $$\big[D_\psi(\hat Z)\big]_{\text{patch } j} \;=\; \operatorname{fold}\Big(\sigma\big(W \hat z_j + b\big)\Big), \qquad W \in \mathbb{R}^{(C\tau p^2)\times D},\ \ C\tau p^2 = 1536$$
+        <div class="note">patch j of the output depends on token j and on nothing else · representative decoded frame: x̂_k = D(Ẑ_k)[:, τ−1]</div>
+        <div class="gloss">One matrix, one sigmoid, then fold the numbers back into pixels. Patch j is built from token j and nothing else, so the decoder has no route by which to invent detail the latent did not supply.</div>
+      </div>
+          <div class="src"><b>in</b> $\hat Z_k$ &nbsp;·&nbsp; <b>out</b> $\hat x_k$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/decoder.py · MinimalDecoder</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
       <div class="step-head"><span class="step-id">S6</span><span class="step-title">The two error coordinates, the floor, and the ratio</span></div>
-      <p>Representation-space and pixel-space error, each measured against the truth, plus the decoder's own reconstruction floor on real (never rolled-forward) tubelets.</p>
-      <div class="eq">
+      <div class="step-body">
+        <div class="step-prose">
+          <p>Representation-space and pixel-space error, each measured against the truth, plus the decoder's own reconstruction floor on real (never rolled-forward) tubelets.</p>
+          <p>
+        $\delta$ is an unnormalised Frobenius norm over $256\times1024$ entries; $\varepsilon$ is a per-pixel RMSE in
+        $[0,1]$. They are <b>not</b> comparable in magnitude and the protocol never compares them that way. What is
+        compared is each one's dimensionless <i>relative range</i> over horizon, and their ratio, which is invariant
+        to rescaling either coordinate:
+      </p>
+        </div>
+        <div class="step-math">
+          <div class="eq">
         $$\delta_k \;=\; \big\|\hat Z_k - Z^\star_k\big\|_F \;=\; \sqrt{\textstyle\sum_{i,d}\big(\hat Z_{k,id}-Z^\star_{k,id}\big)^2}$$
         $$\varepsilon_k \;=\; \sqrt{\tfrac{1}{CHW}\textstyle\sum\big(\hat x_k - x^\star_k\big)^2}, \qquad
           \varepsilon_{\text{floor}} \;=\; \mathbb{E}_{x\sim\text{real}}\Big[\sqrt{\tfrac{1}{C\tau HW}\textstyle\sum\big(D_\psi(E_\theta(x)) - x\big)^2}\Big]$$
         $$\operatorname{excess}_k \;=\; \varepsilon_k - \varepsilon_{\text{floor}}$$
+        <div class="gloss">Two error coordinates: how far the predicted latent sits from the true one, and how far the decoded frame sits from the real frame. The floor is what the decoder alone costs on real frames, with no rollout involved.</div>
       </div>
-      <p>
-        $\delta$ is an unnormalised Frobenius norm over $256\times1024$ entries; $\varepsilon$ is a per-pixel RMSE in
-        $[0,1]$. They are <b>not</b> comparable in magnitude and the protocol never compares them that way. What is
-        compared is each one's dimensionless <i>relative range</i> over horizon, and their ratio — which is invariant
-        to rescaling either coordinate:
-      </p>
-      <div class="eq">
+          <div class="eq">
         $$R[u] \;=\; \frac{\max_k \bar u_k - \min_k \bar u_k}{\operatorname{mean}_k \bar u_k}, \qquad
           \rho \;=\; \frac{R[\varepsilon]}{R[\delta]}, \qquad R[cu]=R[u]\ \ \forall c>0$$
         <div class="note">ρ &gt; 1 ⟺ pixel error is the more horizon-sensitive coordinate. ρ &lt; 1 ⟺ latent drift is. Scale-invariance is what makes the comparison legitimate at all.</div>
+        <div class="gloss">Ask how much each coordinate moves across horizon as a fraction of its own average, then compare the two. Dividing by the mean is what makes quantities in different units comparable at all.</div>
       </div>
-      <div class="src"><b>out</b> $\delta_k,\ \varepsilon_k,\ \rho$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/metrics.py</code>, <code>scripts/stats_significance.py</code></div>
+          <div class="src"><b>out</b> $\delta_k,\ \varepsilon_k,\ \rho$ &nbsp;·&nbsp; <b>impl</b> <code>latent2rgb/metrics.py</code>, <code>scripts/stats_significance.py</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-id">S6c</span><span class="step-title">Separation statistic — a projection residual</span></div>
-      <p>
+      <div class="step-head"><span class="step-id">S6c</span><span class="step-title">Separation statistic: a projection residual</span></div>
+      <div class="step-body">
+        <div class="step-prose">
+          <p>
         Fit pixel error against latent drift using <i>only short horizons</i>, then ask how far the long-horizon
         observation falls from that calibrated line.
       </p>
-      <div class="eq">
+          <p>
+        $r \approx 0$ is the protocol's own <i>stop</i> condition: pixel-space evaluation would be adding nothing that
+        latent-space evaluation didn't already say. $r$ large is the reason the protocol exists. Measured residuals:
+        <b>0.0099</b> (V-JEPA2), <b>0.0004</b> (Family B), <b>0.0131</b> (Family C). The SIGReg note in Section 13 makes the point that
+        residual size and the direction of $\rho$ are <i>different axes</i>.
+      </p>
+        </div>
+        <div class="step-math">
+          <div class="eq">
         $$(a,b) \;=\; \arg\min_{a,b}\ \sum_{k \in K_{\text{fit}}} \big(\varepsilon_k - a\,\delta_k - b\big)^2, \qquad
           r \;=\; \bar\varepsilon_{k^\ast} - \big(a\,\bar\delta_{k^\ast} + b\big)$$
         <div class="note">r is the component of long-horizon pixel error orthogonal to the affine span of latent drift as calibrated at short horizon</div>
+        <div class="gloss">Draw the best straight line from latent drift to pixel error using short horizons only, then measure how far the long-horizon point falls off that line. That miss is the whole signal.</div>
       </div>
-      <p>
-        $r \approx 0$ is the protocol's own <i>stop</i> condition: pixel-space evaluation would be adding nothing that
-        latent-space evaluation didn't already say. $r$ large is the reason the protocol exists. Measured residuals:
-        <b>0.0099</b> (V-JEPA2), <b>0.0004</b> (Family B), <b>0.0131</b> (Family C) — and the SIGReg note in Section 13 makes the point that
-        residual size and the direction of $\rho$ are <i>different axes</i>.
-      </p>
-      <div class="src"><b>impl</b> <code>latent2rgb/metrics.py · fit_separation_statistic</code></div>
+          <div class="src"><b>impl</b> <code>latent2rgb/metrics.py · fit_separation_statistic</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-id">S8</span><span class="step-title">Decoder-honesty gate — runs before S6 is believed</span></div>
-      <p>
+      <div class="step-head"><span class="step-id">S8</span><span class="step-title">Decoder-honesty gate: runs before S6 is believed</span></div>
+      <div class="step-body">
+        <div class="step-prose">
+          <p>
         Two checks on <i>real</i> encoded latents, no predictor involved. If either fails, every $\varepsilon$ above is
         measuring the instrument.
       </p>
-      <div class="eq">
+        </div>
+        <div class="step-math">
+          <div class="eq">
         $$\Gamma \;=\; \big\|D_\psi(E_\theta(x_A)) - x_B\big\| \;-\; \big\|D_\psi(E_\theta(x_A)) - x_A\big\| \qquad \text{(context leakage; require } \Gamma \gg 0)$$
         $$e(\alpha) = \big\|D_\psi\big((1-\alpha) z_A + \alpha z_B\big) - x_A\big\|, \quad \alpha_i = \tfrac{i}{n_s-1}, \qquad
           \kappa = \max_i \big| e_{i+1} - 2 e_i + e_{i-1} \big|$$
         <div class="note">κ is a discrete second difference, κ ≈ h²·|e″|: a decoder that snaps to one plausible real frame shows a plateau then a spike. Both checks pass on real latents, on both datasets.</div>
+        <div class="gloss">Two ways to catch a lying instrument. Decode clip A and check the result resembles A more than an unrelated clip B. Then slide between two real latents and check the output degrades smoothly, instead of snapping from one plausible frame to another.</div>
       </div>
-      <div class="src"><b>impl</b> <code>latent2rgb/instruments.py</code>, <code>scripts/stage_e_real.py</code></div>
+          <div class="src"><b>impl</b> <code>latent2rgb/instruments.py</code>, <code>scripts/stage_e_real.py</code></div>
+        </div>
+      </div>
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-id">S9</span><span class="step-title">Re-injection — is a decode error a one-off or does it compound?</span></div>
-      <p>
+      <div class="step-head"><span class="step-id">S9</span><span class="step-title">Re-injection: is a decode error a one-off, or does it compound?</span></div>
+      <div class="step-body">
+        <div class="step-prose">
+          <p>
         Round-trip a predicted latent through pixels once, resume the rollout from it, and compare against the path
         that was never decoded.
       </p>
-      <div class="eq">
-        $$\Pi \;=\; E_\theta \circ D_\psi, \qquad Z' = \Pi(\hat Z_{k_r}), \qquad \eta = Z' - \hat Z_{k_r}$$
-        $$d_j \;=\; \big\| P_\phi(\hat Z_{k_r}, j) - P_\phi(Z', j) \big\|, \qquad j \in \{2,4\}$$
-      </div>
-      <p>
+          <p>
         To first order in $\eta$, $d_j \approx \big\|J_{P_j}(\hat Z_{k_r})\,\eta\big\|$, so the slope of $d_j$ in $j$ is
-        a finite-perturbation growth rate along the rollout — the empirical analogue of a Lyapunov exponent for the
+        a finite-perturbation growth rate along the rollout, the empirical analogue of a Lyapunov exponent for the
         round-trip perturbation. Sign is the whole reading:
       </p>
-      <div class="eq">
+        </div>
+        <div class="step-math">
+          <div class="eq">
+        $$\Pi \;=\; E_\theta \circ D_\psi, \qquad Z' = \Pi(\hat Z_{k_r}), \qquad \eta = Z' - \hat Z_{k_r}$$
+        $$d_j \;=\; \big\| P_\phi(\hat Z_{k_r}, j) - P_\phi(Z', j) \big\|, \qquad j \in \{2,4\}$$
+        <div class="gloss">Push a predicted latent through pixels and back, keep rolling from there, and compare against the path that was never decoded. The difference is what one round trip costs downstream.</div>
+      </div>
+          <div class="eq">
         $$\text{rate} \;=\; \frac{\operatorname{Cov}_j(j,\, d_j)}{\operatorname{Var}_j(j)} \qquad
           \begin{cases} > 0 & \text{decode error compounds through the dynamics}\\ < 0 & \text{it contracts}\end{cases}$$
-        <div class="note">measured: −0.0248 on SSv2 — contraction, on both datasets. Consistent with a predictor largely insensitive to context under this OOD query: a perturbation to its input barely propagates.</div>
+        <div class="note">measured: −0.0248 on SSv2, i.e. contraction, on both datasets. Consistent with a predictor largely insensitive to context under this OOD query: a perturbation to its input barely propagates.</div>
+        <div class="gloss">Fit a slope to that difference as the rollout continues. Positive means the decode error feeds on itself; negative means the dynamics damp it out.</div>
       </div>
-      <div class="src"><b>impl</b> <code>latent2rgb/instruments.py · reinjection_divergence</code>, <code>scripts/stage_f_reinjection.py</code></div>
+          <div class="src"><b>impl</b> <code>latent2rgb/instruments.py · reinjection_divergence</code>, <code>scripts/stage_f_reinjection.py</code></div>
+        </div>
+      </div>
     </div>
+    </div>
+
   </div>
 
   <div class="section" id="proxies">
     <h2><span class="num">7.</span>The proxy battery (S7)</h2>
     <p>
-      The obvious objection to S5–S6 is that decoding is expensive and maybe unnecessary — surely some cheap
+      The obvious objection to S5–S6 is that decoding is expensive and maybe unnecessary: surely some cheap
       latent-only scalar tracks pixel divergence. Seven were defined and tested. Each is a functional
       $g$ producing one number per $(\text{clip}, k)$ row, to be correlated against $\varepsilon_k$.
     </p>
-    <p>
+
+    <div class="wide">
+      <div class="def-row">
+        <div class="def-label">
+          <h3>The perturbation ensemble</h3>
+          <p>
       Four of them need a perturbation ensemble. Member $0$ is always the unperturbed rollout:
     </p>
-    <div class="eq">
+        </div>
+        <div class="def-math">
+          <div class="eq">
       $$Z^{(m)}_{\text{ctx}} = Z_t + \epsilon\,\hat\sigma(Z_t)\,\xi^{(m)},\quad \xi^{(m)}\!\sim\mathcal{N}(0,I),\ m=1..M{-}1; \qquad
         \hat Z^{(m)}_k = P_\phi\big(Z^{(m)}_{\text{ctx}}, k\big)$$
-      <div class="note">M = 6, ε = 0.05, σ̂ = the empirical std of the context tokens — so the perturbation is scale-relative</div>
-    </div>
-
-    <h3>Distance-type</h3>
-    <div class="eq">
+      <div class="note">M = 6, ε = 0.05, σ̂ = the empirical std of the context tokens, so the perturbation is scale-relative</div>
+      <div class="gloss">Jitter the context six times with noise scaled to the tokens' own spread, roll each copy forward, and watch how far apart the answers land. Four of the seven proxies are read off that spread.</div>
+      </div>
+        </div>
+      </div>
+      <div class="def-row">
+        <div class="def-label">
+          <h3>Distance-type</h3>
+        </div>
+        <div class="def-math">
+          <div class="eq">
       $$g_1 = \big\|\hat Z_k - Z^\star_k\big\|_F \qquad
         g_2 = 1 - \frac{\langle \hat Z_k,\, Z^\star_k\rangle}{\|\hat Z_k\|\,\|Z^\star_k\|} \qquad
         g_3 = \frac{\|\hat Z_k - Z^\star_k\|}{\|Z^\star_k\|}$$
       <div class="note">raw L2 drift · cosine distance · normalized L2 (relative error)</div>
-    </div>
-
-    <h3>Spread-type, over the ensemble $X \in \mathbb{R}^{M\times nD}$ (flattened members)</h3>
-    <div class="eq">
+      <div class="gloss">Three ways of saying how wrong the latent is: raw distance, angle alone, and distance measured relative to the size of the truth.</div>
+      </div>
+        </div>
+      </div>
+      <div class="def-row">
+        <div class="def-label">
+          <h3>Spread-type, over the ensemble $X \in \mathbb{R}^{M\times nD}$ (flattened members)</h3>
+        </div>
+        <div class="def-math">
+          <div class="eq">
       $$g_4 \;=\; \frac{1}{nD}\sum_{i} \widehat{\operatorname{Var}}_m\big[X_{mi}\big] \qquad\text{(ensemble variance, unbiased in } m)$$
       $$\tilde X = X - \tfrac{1}{M}\mathbf{1}\mathbf{1}^\top X = U S V^\top,\qquad
         p_i = \frac{s_i^2}{\sum_j s_j^2},\qquad
@@ -702,21 +816,32 @@
       $$\mu = \tfrac{1}{M}\textstyle\sum_m X_m, \quad \lambda_i = \tfrac{s_i^2}{M-1}, \qquad
         g_6 = d_M\big(Z^\star_k\big) = \sqrt{\ \sum_i \frac{\big\langle v_i,\ Z^\star_k - \mu\big\rangle^2}{\lambda_i + \varepsilon_{\!\text{num}}}\ }$$
       <div class="note">Mahalanobis distance of the <em>truth</em> from the ensemble's own spread, computed through the economy SVD rather than by inverting a singular nD × nD covariance</div>
-    </div>
-
-    <h3>The transplanted one: EBID entropy rate</h3>
-    <p>
+      <div class="gloss">Four ways of saying how unsure the model is: the average spread across the ensemble, the entropy of that spread's spectrum, the effective number of directions it occupies, and how many standard deviations the truth sits from the ensemble's own centre.</div>
+      </div>
+        </div>
+      </div>
+      <div class="def-row">
+        <div class="def-label">
+          <h3>The transplanted one: EBID entropy rate</h3>
+          <p>
       $g_7$'s intended use is not as a static scalar but as a rate. Ported from ecological crash detection, where a
       falling entropy rate precedes population collapse:
     </p>
-    <div class="eq">
+        </div>
+        <div class="def-math">
+          <div class="eq">
       $$\dot H(k) = \frac{dH}{dk}\ \ \text{(central differences, then a width-3 moving average)}, \qquad
         \theta = \min\Big(0,\ Q_{0.10}\big(\dot H\big)\Big)$$
       $$k_{\text{warn}} = \min\Big\{ k_i \ :\ \dot H(k_{i'}) < \theta \ \ \text{for } c \text{ consecutive } i' \ge i \Big\},\quad c = 2$$
       $$k_{\text{crash}} = \min\big\{k : \varepsilon_k \ge Q_{0.75}(\varepsilon)\big\}, \qquad
         \text{lead} = k_{\text{crash}} - k_{\text{warn}}$$
       <div class="note">a usable early-warning signal needs lead &gt; 0. Measured: 0 of 8 real crashes across 24 clips.</div>
+      <div class="gloss">The transplanted crash detector. Watch entropy's rate of change, raise a warning once it stays below a low threshold twice running, and check whether that warning ever arrives before pixel error actually blows up. It never did.</div>
+      </div>
+        </div>
+      </div>
     </div>
+
     <div class="src" style="font-family:'IBM Plex Mono',monospace; font-size:0.74rem; color:var(--text-mute);">
       <b>impl</b> <code>latent2rgb/ebid/{baselines,ensemble,entropy,perturb,lead_time}.py</code>
     </div>
@@ -736,8 +861,8 @@
     <div class="dataset-legend">
       <span><span class="dot" style="background:var(--ssv2)"></span>SSv2</span>
       <span><span class="dot" style="background:var(--kinetics)"></span>Kinetics-mini</span>
-      <span class="k" id="s-processed">&mdash;</span>
-      <span class="k">floor <span id="s-floor">&mdash;</span></span>
+      <span class="k" id="s-processed">&hellip;</span>
+      <span class="k">floor <span id="s-floor">&hellip;</span></span>
     </div>
 
     <div class="charts">
@@ -759,7 +884,7 @@
     <div class="result-box" id="stage-e-box">loading Stage E (decoder honesty)&hellip;</div>
     <div class="result-box" id="stage-f-box">loading Stage F (re-injection divergence)&hellip;</div>
 
-    <div class="chart-title" style="margin-bottom:12px; font-size:0.96rem;">Live feed &mdash; browse recently processed clips</div>
+    <div class="chart-title" style="margin-bottom:12px; font-size:0.96rem;">Live feed: browse recently processed clips</div>
     <div class="feed-grid" style="margin-bottom:24px;">
       <div>
         <div class="feed-panel-title" style="color:var(--ssv2)">Something-Something v2</div>
@@ -781,7 +906,7 @@
       </div>
     </div>
 
-    <div class="chart-title" style="margin-bottom:8px;">Latent trajectory &mdash; mean-pooled, PCA to 2D; solid=true, dashed=predicted</div>
+    <div class="chart-title" style="margin-bottom:8px;">Latent trajectory: mean-pooled, PCA to 2D; solid=true, dashed=predicted</div>
     <div class="traj-grid">
       <div>
         <div class="chart-sub" id="traj-clip-ssv2">waiting&hellip;</div>
@@ -795,17 +920,17 @@
   </div>
 
   <div class="section" id="gallery-sec">
-    <h2><span class="num">9.</span>Rollout gallery &mdash; per-clip evidence</h2>
+    <h2><span class="num">9.</span>Rollout gallery: per-clip evidence</h2>
     <p>
       Section 8's numbers are means. This is the same thing clip by clip, unaveraged. The model only ever
-      sees stage &#9312;. Stage &#9313; is what actually happened next in the real video &mdash; the model
+      sees stage &#9312;. Stage &#9313; is what actually happened next in the real video, and the model
       never saw it. Stage &#9314; is the frozen model's prediction of what happens next, decoded to pixels.
       &#9313; and &#9314; are what get compared. <b>Drag the handle.</b>
     </p>
     <p>
       Each card also carries <code>latent_drift</code> and <code>pixel_error</code>'s own range across
       k&nbsp;=&nbsp;2&rarr;32. They don't move by the same amount, and how much they differ varies clip to
-      clip &mdash; this is the per-clip evidence for why no single latent-space threshold generalises
+      clip. This is the per-clip evidence for why no single latent-space threshold generalises
       (Section&nbsp;10): the clips a threshold would need to separate sit on both sides of it.
     </p>
   <div class="pipeline">
@@ -848,25 +973,25 @@
       Section 8 shows <code>pixel_error</code> diverging from <code>latent_drift</code> under horizon. The
       obvious follow-up: is there a cheap, latent-only signal that predicts <i>that divergence itself</i>,
       so a system without a decoder could still tell when its rollout is failing in pixel space? Experiments
-      1&ndash;6 stress-test six candidates &mdash; cosine distance, Mahalanobis distance, ensemble variance,
-      effective rank, normalized L2 drift, and an entropy-rate metric (EBID) ported from ecological
-      crash-detection &mdash; against real pixel divergence on real clips. All six fail, each in a different
+      1&ndash;6 stress-test six candidates against real pixel divergence on real clips: cosine distance,
+      Mahalanobis distance, ensemble variance, effective rank, normalized L2 drift, and an
+      entropy-rate metric (EBID) ported from ecological crash-detection. All six fail, each in a different
       way:
     </p>
     <div class="result-box">
-      <b>1. Correlation &mdash; honestly bounded.</b> Best candidate (normalized L2) reaches Pearson r = 0.12
+      <b>1. Correlation, honestly bounded.</b> Best candidate (normalized L2) reaches Pearson r = 0.12
       vs. pixel_error; raw latent drift reaches r = 0.013. Cluster-bootstrapped 95% CIs (resampled by clip,
-      n=24) include zero for all six, but at n=24 that alone only has ~80% power to detect |r|&asymp;0.55 &mdash;
-      CI upper bounds range from ~0.12 (Mahalanobis, tightest) to ~0.50 (ensemble variance, loosest), read
+      n=24) include zero for all six, but at n=24 that alone only has ~80% power to detect |r|&asymp;0.55.
+      The CI upper bounds range from ~0.12 (Mahalanobis, tightest) to ~0.50 (ensemble variance, loosest), read
       per-candidate, not as one number.
       (<code>scripts/experiment1_ebid_vs_baselines.py</code>, <code>scripts/stats_significance.py</code>)<br><br>
-      <b>1b. Conformal efficiency &mdash; a power-independent check that agrees.</b> Correlation-test power is
+      <b>1b. Conformal efficiency: a power-independent check that agrees.</b> Correlation-test power is
       a real limit at n=24, so this asks a differently-shaped question instead: does conditioning a
       prediction interval for pixel_error on the candidate narrow it versus a proxy-free baseline (predict
-      the marginal mean)? CV+ (Barber et al. 2021, leave-one-clip-out folds &mdash; not literal functional
+      the marginal mean)? CV+ (Barber et al. 2021, leave-one-clip-out folds, not literal functional
       conformal prediction, which is for curve-valued data; this is scalar per (clip,k)) at nominal 90%
       coverage: five of six candidates give <i>wider</i> intervals than the proxy-free baseline (+0.1% to
-      +4.9%); the sixth is 1.3% narrower &mdash; noise. None help.
+      +4.9%); the sixth is 1.3% narrower, which is noise. None help.
       (<code>scripts/conformal_calibration.py</code>)<br><br>
       <b>3. Lead time.</b> 8 of 24 clips crashed (excess-over-floor over threshold). The entropy-rate metric
       gave early-warning lead time on 0 of them; Wilson 95% CI on that rate is [0%, 32%].
@@ -874,17 +999,17 @@
       <b>4. Sign stability.</b> Entropy vs. perturbation-strength slope is negative and significant under a
       raw rollout (95% CI [&minus;0.0075, &minus;0.0039], r&sup2; up to 0.97); under a context-corrected
       rollout the slope trends positive and is not itself significant (95% CI [&minus;0.0023, 0.0189]), but
-      its interval is fully disjoint from the raw-rollout one &mdash; the two modes are statistically
+      its interval is fully disjoint from the raw-rollout one, so the two modes are statistically
       distinguishable from each other, so correction isn't just adding noise, it's changing the metric's
       relationship to the perturbation it's meant to track.
       (<code>scripts/experiment4_sweep.py</code>, <code>scripts/experiment5_interactions.py</code>)<br><br>
       <b>6. Ranking consistency.</b> Across 96 conditions and 4,026 decided pairwise comparisons, only 678
-      (17%) agree with a global Copeland ranking; 10 explicit 3-cycles found &mdash; a formal certificate of
+      (17%) agree with a global Copeland ranking; 10 explicit 3-cycles found, a formal certificate of
       intransitivity from the observed data, not a sampling estimate: no scalar ordering fits.
       (<code>scripts/experiment6_transitivity.py</code>)
     </div>
     <p>
-      None of these are implementation bugs to fix &mdash; Stage E already ruled the decoder out as the
+      None of these are implementation bugs to fix. Stage E already ruled the decoder out as the
       source of signal, and EBID is a reasonable transplant (an entropy-rate crash detector that works for
       ecological population collapse). The result is the finding: for this frozen latent-only predictor,
       pixel-space divergence isn't something these latent-space proxies can stand in for. See the
@@ -895,7 +1020,7 @@
   <div class="section" id="interpretation">
     <h2><span class="num">11.</span>Mathematical interpretation</h2>
     <p>
-      Everything above is definition. This section is the part that is a <i>reading</i> of the numbers — stated so
+      Everything above is definition. This section is the part that is a <i>reading</i> of the numbers, stated so
       the reading can be checked against the arithmetic.
     </p>
 
@@ -909,8 +1034,9 @@
     <div class="eq">
       $$\hat r(g) = \operatorname{corr}\big(g,\ \varepsilon\big) \quad\text{over all }(\text{clip},k)\text{ rows}, \qquad
         \text{CI}_{95}\ \text{by cluster bootstrap resampling } \textit{clips}\text{, not rows}$$
-      <div class="note">rows within a clip share one latent rollout — they are not independent, so the resampling unit has to be the clip</div>
-    </div>
+      <div class="note">rows within a clip share one latent rollout, so they are not independent, so the resampling unit has to be the clip</div>
+      <div class="gloss">Correlate each proxy against real pixel error, resampling whole clips rather than individual rows, because rows drawn from one clip are not independent evidence.</div>
+      </div>
     <p>
       Best point estimate $\hat r = 0.121$ (normalized L2); raw latent drift itself reaches $0.013$. All seven
       95% CIs include zero. But at $n=24$ clips a correlation test has ~80% power only for $|r| \gtrsim 0.55$, so
@@ -918,7 +1044,7 @@
       $0.122$ (Mahalanobis, tightest) to $0.498$ (ensemble variance, loosest).
     </p>
 
-    <p><b>(b) Conformal interval efficiency — the same conclusion without depending on power.</b></p>
+    <p><b>(b) Conformal interval efficiency: the same conclusion, without depending on power.</b></p>
     <p>
       Coverage is guaranteed by construction for <i>any</i> score, informative or not, so coverage cannot
       distinguish them. Width can. With leave-one-clip-out CV+ folds:
@@ -927,8 +1053,9 @@
       $$\hat C_\alpha^{g}(x) = \Big[\ q^-_{\alpha}\big\{\hat f_{-c(i)}(x) - R_i\big\},\ \ q^+_{\alpha}\big\{\hat f_{-c(i)}(x) + R_i\big\}\ \Big],\qquad R_i = \big|\,\varepsilon_i - \hat f_{-c(i)}(g_i)\,\big|$$
       $$W(g) = \mathbb{E}\big[\,\big|\hat C^{g}_\alpha\big|\,\big], \qquad
         \textbf{g is informative}\iff W(g) < W_0,\quad W_0 = W(\text{const})$$
-      <div class="note">CV+ (Barber, Candès, Ramdas, Tibshirani 2021) guarantees marginal coverage ≥ 1 − 2α = 80% at α = 0.1; empirical baseline coverage 90.8%. Not functional conformal prediction — this data is scalar per (clip, k), so plain CV+ is the correctly-scoped tool.</div>
-    </div>
+      <div class="note">CV+ (Barber, Candès, Ramdas, Tibshirani 2021) guarantees marginal coverage ≥ 1 − 2α = 80% at α = 0.1; empirical baseline coverage 90.8%. Not functional conformal prediction: this data is scalar per (clip, k), so plain CV+ is the correctly-scoped tool.</div>
+      <div class="gloss">Build a prediction interval for pixel error that is allowed to use the proxy, holding out one clip at a time. If the proxy carries information the interval gets narrower; if it does not, it does not.</div>
+      </div>
     <p>
       Measured: five of seven scores give <i>wider</i> intervals than the proxy-free baseline
       ($+0.06\%$ to $+4.9\%$); normalized L2 is $1.3\%$ narrower. None tightens the interval meaningfully.
@@ -940,23 +1067,25 @@
       <div class="eq">
         $$|r| \;\approx\; \sqrt{1 - w^2}\;:\qquad w = 0.987 \ \Rightarrow\ |r| \approx 0.16,
           \qquad \text{vs. measured } \hat r = 0.121 \ \Rightarrow\ w \approx 0.993$$
+        <div class="gloss">A bridge between the two analyses: an interval that shrinks by this much implies a correlation of roughly that much. Two independent measurements, landing in the same place.</div>
       </div>
       <p style="margin-bottom:0;">
         The two analyses land in the same place to within a factor the idealisation can't resolve. This bridge is an
-        interpretive cross-check added here, not an output of either script — CV+ width is not the Gaussian oracle
+        interpretive cross-check added here, not an output of either script. CV+ width is not the Gaussian oracle
         width, and the agreement is order-of-magnitude, not a test.
       </p>
     </div>
 
-    <p><b>(c) Ordering — a certificate, not an estimate.</b></p>
+    <p><b>(c) Ordering: a certificate, not an estimate.</b></p>
     <p>
       Over 96 conditions $(\text{mode}, \epsilon, j)$, define a majority (Condorcet) tournament on clips:
     </p>
     <div class="eq">
       $$A \succ B \iff \#\big\{c : \varepsilon_c(A) < \varepsilon_c(B)\big\} \;>\; \#\big\{c : \varepsilon_c(B) < \varepsilon_c(A)\big\}$$
       $$\text{If }\exists\, u:\ \text{conditions}\to\mathbb{R}\ \ \text{with}\ \ A \succ B \iff u(A) > u(B),\ \ \text{then } \succ \text{ is a strict total order, hence }\textbf{acyclic}.$$
-      <div class="note">10 explicit 3-cycles were found (A ≻ B ≻ C ≻ A). One such cycle refutes the existence of <em>any</em> scalar stability index u over these conditions — this is a proof by counterexample, not a significance test, so no sample-size caveat applies to the refutation itself.</div>
-    </div>
+      <div class="note">10 explicit 3-cycles were found (A ≻ B ≻ C ≻ A). One such cycle refutes the existence of <em>any</em> scalar stability index u over these conditions. This is a proof by counterexample, not a significance test, so no sample-size caveat applies to the refutation itself.</div>
+      <div class="gloss">Say one condition beats another when it wins on more clips than it loses. If any single score could rank these conditions, this relation could never loop back on itself. It loops ten times.</div>
+      </div>
     <p>
       The Copeland score $\operatorname{Cop}(A) = \#\{B : A \succ B\}$ gives the best available scalar summary; the
       total order it induces agrees with only $678 / 4026 = 16.8\%$ of decided pairs.
@@ -967,13 +1096,14 @@
     <div class="eq">
       $$\beta_{\text{pure}} \in [-0.0075,\, -0.0039], \qquad \beta_{\text{corrected}} \in [-0.0023,\, +0.0189]$$
       <div class="note">the metric's relationship to perturbation strength depends on a design choice orthogonal to the instability it claims to measure</div>
-    </div>
+      <div class="gloss">The same metric slopes one way under one pipeline setting and the other way under another, and the two intervals do not overlap.</div>
+      </div>
 
     <div class="callout warn">
       <p style="margin-bottom:0;">
         <b>What these four together do and do not license.</b> They say: for this frozen latent-only predictor,
         no tested latent-space scalar substitutes for decoding against ground truth. They do <i>not</i> say a
-        latent-only proxy is impossible in general — (a) is underpowered, (b) tests only linear conditioning,
+        latent-only proxy is impossible in general: (a) is underpowered, (b) tests only linear conditioning,
         and (c) refutes a total order over <i>these</i> conditions. That is exactly why the protocol's step 2 is
         "re-run this battery on your model", not "latent proxies don't work".
       </p>
@@ -993,16 +1123,17 @@
       </tbody>
     </table>
     <p>
-      The reading — and it is a reading — is that the direction tracks <b>how the predictor relates to the query</b>,
+      The reading (and it is a reading) is that the direction tracks <b>how the predictor relates to the query</b>,
       not architecture. Both trained families minimise a latent-space objective of the form
     </p>
     <div class="eq">
       $$\min_\phi\ \mathbb{E}\Big[\big\|P_\phi(Z_t,k) - Z^\star_k\big\|^2\Big] \qquad\Longrightarrow\qquad \delta_k \text{ inherits its horizon dependence directly from the training residual,}$$
-      <div class="note">while their decoders are trained only on real tubelets, so ε_k ≈ ε_floor + (small horizon term) — a large R[δ] against a small R[ε], i.e. ρ ≪ 1</div>
-    </div>
+      <div class="note">while their decoders are trained only on real tubelets, so ε_k ≈ ε_floor + (small horizon term), i.e. a large R[δ] against a small R[ε], so ρ ≪ 1</div>
+      <div class="gloss">Both trained families were optimised to make latent distance small, so latent distance is where their horizon dependence surfaces. Their decoders never saw a rollout, so pixel error barely moves.</div>
+      </div>
     <p>
       V-JEPA2 is the opposite: queried far from its training mask distribution (S3), its output is nearly
-      horizon-invariant in latent space — $R[\delta] = 2\%$ — which is the same insensitivity S9's contracting
+      horizon-invariant in latent space, $R[\delta] = 2\%$, which is the same insensitivity S9's contracting
       re-injection rate independently shows. Flat $\delta$ with moving $\varepsilon$ is precisely the configuration
       in which a latent-space check cannot see what pixel space sees.
     </p>
@@ -1021,7 +1152,8 @@
     <div class="eq">
       $$\varepsilon_k \;\ne\; \sqrt{\varepsilon_{\text{floor}}^2 + \varepsilon_{\text{rollout}}^2}\ \ \text{in general};\qquad
         \operatorname{excess}_k \ \text{is a }\textit{comparable}\text{ quantity across } k\text{, not an identified component.}$$
-    </div>
+      <div class="gloss">Subtracting the floor is a convention for comparing across horizons, not a claim that the two sources of error can be cleanly pulled apart. They cannot.</div>
+      </div>
     <p>
       It is used only in ways that survive that: as a threshold for "crash" in the lead-time test, and as a
       horizon-varying quantity compared against itself.
@@ -1036,12 +1168,13 @@
       $$\hat x^{(j)} \ \text{is} \ \sigma\big(\hat z_j\big)\text{-measurable}, \qquad
         \mathcal{H} = \Big\{\ \hat z \mapsto \sigma\big(W\hat z + b\big)\ :\ W \in \mathbb{R}^{1536\times 1024}\ \Big\}$$
       <div class="note">a 1024-dimensional affine family per patch, ≈1.57M parameters shared across all 256 tokens, with no cross-token attention, no learned image prior, no adversarial or diffusion objective</div>
-    </div>
+      <div class="gloss">The decoder's entire vocabulary is one affine map per patch. That is the precise sense in which it cannot hallucinate: there is nowhere for invented detail to come from.</div>
+      </div>
     <p>
       So any structure visible in $\hat x$ beyond a per-patch affine image of its own token <b>must have come from
       $\hat Z$</b>. Contrast a diffusion decoder, whose output distribution is dominated by a learned prior
       $p_{\text{prior}}(x)$ and which can therefore produce a sharp, plausible frame from a latent that carries very
-      little — exactly the failure mode this protocol exists to detect. The trade is explicit: <b>decode quality is
+      little, exactly the failure mode this protocol exists to detect. The trade is explicit: <b>decode quality is
       given up to buy decode honesty</b>, and $\varepsilon_{\text{floor}}$ is the price, measured rather than assumed.
     </p>
   </div>
@@ -1049,7 +1182,7 @@
   <div class="section" id="protocol">
     <h2><span class="num">12.</span>Protocol (adopt this)</h2>
     <p>
-      The reusable output of Section 10 isn't "these six metrics failed" in isolation &mdash; it's a
+      The reusable output of Section 10 isn't "these six metrics failed" in isolation. It is a
       checklist for evaluating any frozen, latent-only state predictor with no native decoder.
       Skipping straight to step 3 without 1&ndash;2 is how a decoder artifact gets reported as a
       predictor finding, or an untested latent-space proxy gets trusted anyway.
@@ -1059,16 +1192,16 @@
       rollouts, and pass the leakage + snapping checks before trusting anything downstream. Failing
       either means every pixel-space number below is measuring the decoder, not the predictor.</li>
       <li><b>Don't substitute a latent-space proxy for step 3.</b> All six tested here failed on this
-      predictor &mdash; treat any latent-only "confidence" signal as unverified on your model until it
+      predictor, so treat any latent-only "confidence" signal as unverified on your model until it
       passes the same battery (Experiments 1, 3, 4, 6).</li>
       <li><b>Decode and compare directly.</b> The only check here that reliably surfaces the
       divergence a latent-only proxy misses.</li>
       <li><b>Check re-injection compounding separately.</b> Distinguishes one-shot decode noise from
-      rollout drift that compounds &mdash; steps 1&ndash;3 alone can't tell these apart.</li>
+      rollout drift that compounds, which steps 1&ndash;3 alone can't tell apart.</li>
     </ol>
     <p>
       Implemented against the <code>Encoder</code>/<code>Decoder</code>/<code>StatePredictor</code>
-      protocols in <code>latent2rgb/interfaces.py</code>, not against V-JEPA2 specifically &mdash; any
+      protocols in <code>latent2rgb/interfaces.py</code>, not against V-JEPA2 specifically, so any
       model satisfying those interfaces runs the same four steps unmodified.
     </p>
 
@@ -1080,7 +1213,7 @@
       <tbody>
         <tr><td>1 · honesty</td><td>$\Gamma \gg 0$ and $\kappa$ small (S8)</td><td>every $\varepsilon$ measures the decoder, not the predictor</td></tr>
         <tr><td>2 · no substitution</td><td>$W(g) < W_0$ and $\hat r(g)$ bounded away from 0, for your model</td><td>the proxy is unverified; do not skip gate 3</td></tr>
-        <tr><td>3 · decode &amp; compare</td><td>report $\delta_k$, $\varepsilon_k$, $\rho$, and the residual $r$ (S6)</td><td>—; this is the only check that reliably surfaces the divergence</td></tr>
+        <tr><td>3 · decode &amp; compare</td><td>report $\delta_k$, $\varepsilon_k$, $\rho$, and the residual $r$ (S6)</td><td>Nothing; this is the only check that reliably surfaces the divergence</td></tr>
         <tr><td>4 · compounding</td><td>sign of the $d_j$ slope (S9)</td><td>one-shot decode noise and compounding rollout drift stay indistinguishable</td></tr>
       </tbody>
     </table>
@@ -1098,9 +1231,9 @@
       out whether the measurement gap is a property of that regime or of latent-only prediction generally,
       the identical protocol (Stage D + Experiment 1) was run against two more families, differing from
       V-JEPA2 (and from each other) in what's frozen vs. trained and in encoder architecture: <b>Family
-      B</b> &mdash; a frozen, independently-pretrained DINOv2 ViT-S/14 encoder + a small MLP predictor
+      B</b>, a frozen, independently-pretrained DINOv2 ViT-S/14 encoder + a small MLP predictor
       trained here (<code>latent2rgb/dinov2_adapter.py</code>, <code>delta_predictor.py</code>); and
-      <b>Family C</b> &mdash; an action-free variant of LeWorldModel (Maes et al., arXiv 2603.19312):
+      <b>Family C</b>, an action-free variant of LeWorldModel (Maes et al., arXiv 2603.19312):
       encoder <i>and</i> predictor trained jointly, end-to-end, from raw pixels, no pretraining at all
       (ViT-Tiny encoder + causal transformer predictor + SIGReg anti-collapse regularizer,
       <code>latent2rgb/lewm_adapter.py</code>, <code>lewm_predictor.py</code>). See <a href="#limitations">Limitations</a> for what
@@ -1109,31 +1242,31 @@
     <div class="result-box">
       <b>Direction inverts on both, bootstrap-confirmed on both.</b> latent_drift moves far more than
       pixel_error on both trained families (Family B: 34% vs. 10% range across k=2&rarr;32; Family C: 66%
-      vs. 4%) &mdash; the opposite of V-JEPA2 (~2% vs. ~12%). Divergence-ratio 95% CIs (clip-level
-      bootstrap): <b>[2.0, 14.0]</b> V-JEPA2, <b>[0.20, 0.41]</b> Family B, <b>[0.026, 0.131]</b> Family C
-      &mdash; all three disjoint from each other and from 1.0; 100% (C) / 99.97% (V-JEPA2) of resamples land
+      vs. 4%), the opposite of V-JEPA2 (~2% vs. ~12%). Divergence-ratio 95% CIs (clip-level
+      bootstrap): <b>[2.0, 14.0]</b> V-JEPA2, <b>[0.20, 0.41]</b> Family B, <b>[0.026, 0.131]</b> Family C.
+      All three are disjoint from each other and from 1.0; 100% (C) / 99.97% (V-JEPA2) of resamples land
       on the predicted side. Two independently-built, differently-trained predictors landing on the same
       side against V-JEPA2 is a real pattern.
       (<code>stage_d_results_second_family.csv</code>, <code>stage_d_results_lewm_family.csv</code>)<br><br>
       <b>But separation residuals don't move together.</b> Family B's residual is ~30x smaller than
-      V-JEPA2's (0.0004 vs. 0.0099) &mdash; pixel_error nearly fully explained by the low-k latent_drift
-      trend. Family C's residual (0.0131) is close to V-JEPA2's <i>despite sharing Family B's direction</i>
-      &mdash; residual size and divergence direction are different axes; a proxy safe on B's residual
+      V-JEPA2's (0.0004 vs. 0.0099): pixel_error is nearly fully explained by the low-k latent_drift
+      trend. Family C's residual (0.0131) is close to V-JEPA2's <i>despite sharing Family B's direction</i>.
+      Residual size and divergence direction are different axes; a proxy safe on B's residual
       wouldn't have been safe on C's.<br><br>
       <b>Candidate-proxy correlations stay weak on Family C, unlike B.</b> Best |r| = 0.20 (ensemble
-      variance) at n=9 clips &mdash; closer to V-JEPA2's weak correlations than Family B's elevated (still
+      variance) at n=9 clips, closer to V-JEPA2's weak correlations than Family B's elevated (still
       not significant) r=0.39.
       (<code>outputs/experiment1_lewm_family_summary.json</code>)<br><br>
       <b>Collapse checked, not assumed.</b> Family C's encoder trains from scratch; SIGReg exists
       specifically to stop it collapsing to a constant output, which would trivially minimize prediction
       loss too and look identical to "good coupling." Checked directly: per-dimension embedding std &asymp;
-      1.0 across all 192 dims (0.83&ndash;1.20) on 50 held-out tubelets from 10 clips &mdash; matching
+      1.0 across all 192 dims (0.83&ndash;1.20) on 50 held-out tubelets from 10 clips, matching
       SIGReg's isotropic-Gaussian target, not a collapsed one.
     </div>
     <p>
-      Reading: divergence direction tracks <i>how the predictor relates to its query</i> &mdash;
+      Reading: divergence direction tracks <i>how the predictor relates to its query</i>,
       frozen-and-queried-out-of-distribution (V-JEPA2) vs. trained-toward-what's-being-measured (Families B
-      and C) &mdash; not a fixed property of any one architecture. More specific and better-supported than
+      and C), rather than a fixed property of any one architecture. More specific and better-supported than
       "the gap is V-JEPA2-specific," and only visible because two, not one, differently-built families were
       run through the same protocol. See <a href="#limitations">Limitations</a> for what this result is and isn't evidence for.
     </p>
@@ -1142,7 +1275,7 @@
 
     <p>
       Family C trains encoder and predictor jointly from raw pixels with no pretrained representation, so it needs an
-      explicit anti-collapse term — a constant encoder would trivially minimise the prediction loss and would look
+      explicit anti-collapse term: a constant encoder would trivially minimise the prediction loss and would look
       identical to perfect coupling in every number above.
     </p>
     <div class="eq">
@@ -1150,11 +1283,12 @@
       $$h^{(m)} = Z u^{(m)},\quad u^{(m)}\sim \operatorname{Unif}\big(S^{D-1}\big), \qquad
         T^{(m)} = \int w(t)\,\Big|\varphi_N\big(t; h^{(m)}\big) - \varphi_0(t)\Big|^2 \, dt$$
       $$\varphi_N(t;h) = \tfrac{1}{N}\textstyle\sum_n e^{\,i t h_n}, \qquad \varphi_0(t) = e^{-t^2/2}, \qquad w(t) = e^{-t^2/(2\lambda_w^2)},\ \lambda_w = 1$$
-      <div class="note">Epps–Pulley normality test on each 1-D projection. By the Cramér–Wold theorem, matching every 1-D marginal to a standard Gaussian implies matching the full joint — which is what makes M random directions a sufficient device. Quadrature: trapezoid, 17 nodes on t ∈ [0.2, 4], doubled by evenness of the integrand; t = 0 contributes nothing since φ_N(0) = φ₀(0) = 1.</div>
-    </div>
+      <div class="note">Epps–Pulley normality test on each 1-D projection. By the Cramér–Wold theorem, matching every 1-D marginal to a standard Gaussian implies matching the full joint, which is what makes M random directions a sufficient device. Quadrature: trapezoid, 17 nodes on t ∈ [0.2, 4], doubled by evenness of the integrand; t = 0 contributes nothing since φ_N(0) = φ₀(0) = 1.</div>
+      <div class="gloss">Predict the next embedding, and at the same time push the embedding cloud toward a standard Gaussian by testing random one-dimensional shadows of it for normality. Without that second term the encoder could collapse to a constant and still score perfectly.</div>
+      </div>
     <p>
       Collapse was checked directly rather than assumed: per-dimension embedding std $\approx 1.0$ across all 192
-      dims (range $0.83$–$1.20$) on 50 held-out tubelets from 10 clips — matching SIGReg's isotropic-Gaussian target.
+      dims (range $0.83$–$1.20$) on 50 held-out tubelets from 10 clips, matching SIGReg's isotropic-Gaussian target.
       At batch size 16 the per-batch normality estimate is noisier than the paper's 128; the direct check is what
       the claim rests on.
     </p>
@@ -1167,7 +1301,7 @@
     <h2><span class="num">14.</span>Limitations</h2>
     <ul class="plain">
       <li><b>Counterfactual faithfulness is untested.</b> Every claim here is about whether latent-space
-      observables predict pixel-space divergence under a fixed, non-action-conditioned rollout &mdash;
+      observables predict pixel-space divergence under a fixed, non-action-conditioned rollout, and
       none of it says whether the predictor responds correctly to different actions. That needs
       V-JEPA2-AC plus a real action-conditioned dataset (e.g. DROID, Bridge); both are far outside this
       project's disk budget (the existing V-JEPA2 checkpoint alone is 4.8GB against ~18GB free, those
@@ -1175,14 +1309,13 @@
       <li><b>Both extra model families (Section 13) are lightweight stand-ins, not second SOTA world
       models.</b> DINOv2 (Family B) was never pretrained for temporal dynamics; its predictor is a small
       MLP trained on ~26 clips for 40 epochs. LeWM-style (Family C) is an <i>action-free variant</i> of
-      LeWorldModel, not a reimplementation &mdash; the paper's AdaLN action pathway is simply absent, since
+      LeWorldModel, not a reimplementation: the paper's AdaLN action pathway is simply absent, since
       SSv2/Kinetics-mini carry no action labels. It's also trained at much smaller scale than the paper
-      (batch size 16 vs. 128; 300 steps on ~26 clips vs. 10 epochs on 10,000-episode datasets) &mdash;
+      (batch size 16 vs. 128; 300 steps on ~26 clips vs. 10 epochs on 10,000-episode datasets), so
       SIGReg's per-batch normality estimate is noisier at this scale, though the direct collapse check in
       Section 13 passed. Neither family is independently pretrained, state-of-the-art, or a contribution in
       itself. They answer "does the gap reproduce on differently architected, differently trained
-      latent-only predictors," not "does the gap hold for latent-only video world models in general"
-      &mdash; that broader claim needs an independently pretrained SOTA model at real scale.</li>
+      latent-only predictors," not "does the gap hold for latent-only video world models in general". That broader claim needs an independently pretrained SOTA model at real scale.</li>
       <li><b>Only Stage D and Experiment 1 ran on the two extra families</b>, not the full battery.
       Experiments 3 (lead-time), 4/5 (sign-stability), and 6 (transitivity) only ran against V-JEPA2; the
       n=9&ndash;10 clips per extra family are too few for Experiment 6's pairwise-ranking design especially
@@ -1199,7 +1332,7 @@
   </div>
 
   <div class="section" id="status">
-    <h2><span class="num">15.</span>Status &mdash; what has been run, on what</h2>
+    <h2><span class="num">15.</span>Status: what has been run, on what</h2>
     <p>
       Real results, on the real frozen V-JEPA2 ViT-L encoder/predictor, on two disjoint datasets
       (Something-Something v2 and Kinetics-mini).
@@ -1207,13 +1340,13 @@
     <ul class="plain">
       <li><b>Stage D (pilot).</b> Under a causal masks_x/masks_y query the predictor was never trained for,
       <code>latent_drift</code> barely moves with horizon (2&ndash;3% from k=2&rarr;32) while
-      <code>pixel_error</code> moves several times more, non-monotonically &mdash; on both datasets.
+      <code>pixel_error</code> moves several times more, non-monotonically, on both datasets.
       (Section&nbsp;8.)</li>
       <li><b>Stage E (decoder honesty).</b> Context-leakage and snapping checks both pass on real encoded
-      latents &mdash; the decoder reads its input, it hasn't collapsed to a generic output. (Sections&nbsp;6
+      latents: the decoder reads its input, it hasn't collapsed to a generic output. (Sections&nbsp;6
       and&nbsp;8.)</li>
       <li><b>Stage F (re-injection divergence).</b> Decode &rarr; re-encode &rarr; re-inject: the resulting
-      error <i>shrinks</i> with further horizon rather than compounding, on both datasets &mdash; consistent
+      error <i>shrinks</i> with further horizon rather than compounding, on both datasets, consistent
       with the predictor being largely insensitive to context under this out-of-distribution query.
       (Sections&nbsp;6 and&nbsp;8.)</li>
       <li><b>Experiments 1&ndash;6 (the measurement gap).</b> Six candidate latent-only instability metrics,
@@ -1222,13 +1355,13 @@
       time on real crashes, flip sign under an unrelated pipeline choice, and produce a pairwise condition
       ranking that is mostly intransitive. (Sections&nbsp;10 and&nbsp;11.)</li>
       <li><b>Two more model families.</b> DINOv2 + trained MLP, and an action-free LeWM-style JEPA trained
-      end-to-end from scratch. Neither reproduces V-JEPA2's gap shape, and &mdash; more informatively &mdash;
+      end-to-end from scratch. Neither reproduces V-JEPA2's gap shape, and (more informatively)
       they agree with <i>each other</i>. (Section&nbsp;13.)</li>
       <li><b>Not run: counterfactual faithfulness</b> (rolling one state under two different actions). Needs
       V-JEPA2-AC plus a real action-conditioned robot-trajectory dataset; both are far outside this project's
       disk budget (the V-JEPA2 checkpoint alone is 4.8&nbsp;GB against ~18&nbsp;GB free, and DROID/Bridge-class
-      datasets run 100&nbsp;GB+). Explicitly out of scope &mdash; see <a href="#limitations">Limitations</a>
-      &mdash; not attempted as a shortcut.</li>
+      datasets run 100&nbsp;GB+). Explicitly out of scope (see <a href="#limitations">Limitations</a>),
+      not attempted as a shortcut.</li>
     </ul>
   </div>
 
@@ -1241,30 +1374,30 @@
       specific model or dataset.
     </p>
     <ul class="plain">
-      <li><code>latent2rgb/vjepa_adapter.py</code> &mdash; real V-JEPA2 ViT-L encoder/predictor adapter (the
+      <li><code>latent2rgb/vjepa_adapter.py</code>: real V-JEPA2 ViT-L encoder/predictor adapter (the
       causal masks_x/masks_y construction of Step&nbsp;S3, built by reading the vendored source directly, not
       from summaries)</li>
-      <li><code>latent2rgb/video_source.py</code>, <code>ssv2.py</code> &mdash; generic video-directory
+      <li><code>latent2rgb/video_source.py</code>, <code>ssv2.py</code>: generic video-directory
       <code>ClipSource</code> (webm/mp4)</li>
-      <li><code>latent2rgb/decoder.py</code> &mdash; the minimal per-token linear decoder (Step&nbsp;S5)</li>
-      <li><code>latent2rgb/data.py</code> &mdash; causal context/horizon rollout builder (Steps&nbsp;S1&ndash;S4)</li>
-      <li><code>latent2rgb/metrics.py</code> &mdash; latent_drift, pixel_error, floor, separation fit
+      <li><code>latent2rgb/decoder.py</code>: the minimal per-token linear decoder (Step&nbsp;S5)</li>
+      <li><code>latent2rgb/data.py</code>: causal context/horizon rollout builder (Steps&nbsp;S1&ndash;S4)</li>
+      <li><code>latent2rgb/metrics.py</code>: latent_drift, pixel_error, floor, separation fit
       (Steps&nbsp;S6, S6c)</li>
-      <li><code>latent2rgb/instruments.py</code> &mdash; leakage, snapping, counterfactual, re-injection
-      instruments (Steps&nbsp;S8, S9; generic &mdash; some run against the synthetic-era interface and need
+      <li><code>latent2rgb/instruments.py</code>: leakage, snapping, counterfactual, re-injection
+      instruments (Steps&nbsp;S8, S9; generic, though some run against the synthetic-era interface and need
       the tubelet adaptation shown in <code>scripts/stage_e_real.py</code>)</li>
-      <li><code>latent2rgb/ebid/</code> &mdash; the candidate latent-only instability metrics of
+      <li><code>latent2rgb/ebid/</code>: the candidate latent-only instability metrics of
       Section&nbsp;7 (cosine distance, Mahalanobis, ensemble variance, effective rank, entropy)</li>
-      <li><code>latent2rgb/dinov2_adapter.py</code> &mdash; Family B's <code>Encoder</code>: frozen,
+      <li><code>latent2rgb/dinov2_adapter.py</code>: Family B's <code>Encoder</code>, a frozen,
       independently-pretrained DINOv2 ViT-S/14, mean-pooled across a tubelet's 2 frames to land on the same
       token convention as <code>vjepa_adapter.py</code></li>
-      <li><code>latent2rgb/delta_predictor.py</code> &mdash; Family B's <code>StatePredictor</code>: a small
+      <li><code>latent2rgb/delta_predictor.py</code>: Family B's <code>StatePredictor</code>, a small
       MLP trained here (DINOv2 ships no predictor at all)</li>
-      <li><code>latent2rgb/lewm_adapter.py</code> &mdash; Family C's <code>Encoder</code>: a ViT-Tiny trained
+      <li><code>latent2rgb/lewm_adapter.py</code>: Family C's <code>Encoder</code>, a ViT-Tiny trained
       from scratch, per an action-free variant of LeWorldModel (arXiv 2603.19312);
-      <code>tokens_per_tubelet=1</code> (one global embedding per tubelet, not a patch grid) &mdash; a real
+      <code>tokens_per_tubelet=1</code> (one global embedding per tubelet, not a patch grid), a real
       architectural difference from the other two adapters, not a bug</li>
-      <li><code>latent2rgb/lewm_predictor.py</code> &mdash; Family C's <code>StatePredictor</code>: a causal
+      <li><code>latent2rgb/lewm_predictor.py</code>: Family C's <code>StatePredictor</code>, a causal
       transformer trained jointly with the encoder, plus the SIGReg anti-collapse regularizer written out in
       Section&nbsp;13</li>
     </ul>
@@ -1275,16 +1408,16 @@
     <table class="spec scripts">
       <thead><tr><th>Script</th><th>Stage</th></tr></thead>
       <tbody>
-        <tr><td>scripts/smoke_test.py</td><td>B &mdash; real shapes end to end</td></tr>
-        <tr><td>scripts/train_decoder.py</td><td>C &mdash; decoder floor</td></tr>
-        <tr><td>scripts/pilot.py</td><td>D &mdash; the decision point</td></tr>
-        <tr><td>scripts/stage_e_real.py</td><td>E &mdash; decoder honesty checks, real model</td></tr>
-        <tr><td>scripts/stage_f_reinjection.py</td><td>F &mdash; re-injection divergence, real model</td></tr>
-        <tr><td>scripts/experiment1_ebid_vs_baselines.py</td><td>1 &mdash; candidate metrics vs. pixel_error, real model</td></tr>
-        <tr><td>scripts/experiment3_lead_time.py</td><td>3 &mdash; entropy-rate crash lead-time, real model</td></tr>
-        <tr><td>scripts/experiment4_sweep.py</td><td>4 &mdash; horizon &times; perturbation &times; correction-mode sweep</td></tr>
-        <tr><td>scripts/experiment5_interactions.py</td><td>5 &mdash; mode-gap and entropy-scaling fits over the sweep</td></tr>
-        <tr><td>scripts/experiment6_transitivity.py</td><td>6 &mdash; pairwise condition ranking, Copeland/3-cycle test</td></tr>
+        <tr><td>scripts/smoke_test.py</td><td>B: real shapes end to end</td></tr>
+        <tr><td>scripts/train_decoder.py</td><td>C: decoder floor</td></tr>
+        <tr><td>scripts/pilot.py</td><td>D: the decision point</td></tr>
+        <tr><td>scripts/stage_e_real.py</td><td>E: decoder honesty checks, real model</td></tr>
+        <tr><td>scripts/stage_f_reinjection.py</td><td>F: re-injection divergence, real model</td></tr>
+        <tr><td>scripts/experiment1_ebid_vs_baselines.py</td><td>1: candidate metrics vs. pixel_error, real model</td></tr>
+        <tr><td>scripts/experiment3_lead_time.py</td><td>3: entropy-rate crash lead-time, real model</td></tr>
+        <tr><td>scripts/experiment4_sweep.py</td><td>4: horizon &times; perturbation &times; correction-mode sweep</td></tr>
+        <tr><td>scripts/experiment5_interactions.py</td><td>5: mode-gap and entropy-scaling fits over the sweep</td></tr>
+        <tr><td>scripts/experiment6_transitivity.py</td><td>6: pairwise condition ranking, Copeland/3-cycle test</td></tr>
         <tr><td>scripts/stats_significance.py</td><td>cluster-bootstrap 95% CIs on Stage D / Experiments 1, 4; Wilson CI on Experiment 3</td></tr>
         <tr><td>scripts/conformal_calibration.py</td><td>CV+ conformal interval efficiency vs. a proxy-free baseline, Experiment 1</td></tr>
         <tr><td>scripts/dump_visuals.py</td><td>writes true/floor-recon/rollout PNGs for a gallery</td></tr>
@@ -1312,7 +1445,7 @@ git clone --depth 1 https://github.com/facebookresearch/vjepa2.git vendor/vjepa2
 curl -L -o checkpoints/vitl.pt https://dl.fbaipublicfiles.com/vjepa2/vitl.pt   <span class="c"># ~4.9GB</span></pre>
     <p>
       Stage the datasets under <code>data/ssv2/videos</code> (webm) and <code>data/kinetics_mini</code> (mp4,
-      e.g. the <code>nateraw/kinetics-mini</code> HuggingFace dataset) &mdash; not included in the repo
+      e.g. the <code>nateraw/kinetics-mini</code> HuggingFace dataset), not included in the repo
       (<code>data/</code>, <code>checkpoints/</code> and <code>vendor/</code> are gitignored: license
       restrictions on SSv2, and the checkpoint and vendored repo are large and easily re-fetched).
     </p>
@@ -1348,7 +1481,7 @@ python -m http.server 8090 --directory outputs
     perceptual or adversarial loss.
     <br><br>
     Every number on this page is computed by a script in <code>scripts/</code> and stored under
-    <code>outputs/</code> &mdash; correlations and CIs from <code>stats_significance.json</code>, interval
+    <code>outputs/</code>: correlations and CIs from <code>stats_significance.json</code>, interval
     widths from <code>conformal_calibration.json</code>, cycles from <code>experiment6_summary.json</code>,
     the three families' ranges from the <code>stage_d_results*.csv</code> files. The only content not
     produced by a script is explicitly marked as interpretation (&sect;11.1's Gaussian bridge,
@@ -1414,7 +1547,7 @@ function drawTrajectory(svgId, labelId, traj, color){
   const svg = document.getElementById(svgId);
   const label = document.getElementById(labelId);
   if(!traj){ return; }
-  label.textContent = `clip ${traj.clip_id} — PC1/PC2 explain ${(traj.explained_variance[0]*100).toFixed(0)}% / ${(traj.explained_variance[1]*100).toFixed(0)}% of variance`;
+  label.textContent = `clip ${traj.clip_id}: PC1/PC2 explain ${(traj.explained_variance[0]*100).toFixed(0)}% / ${(traj.explained_variance[1]*100).toFixed(0)}% of variance`;
 
   const W = 300, H = 260, pad = 30;
   const b = traj.bounds;
@@ -1509,10 +1642,10 @@ async function poll(){
     dot.classList.toggle('static', !isLive);
     if (isLive) {
       liveText.textContent = data.processed >= data.target_n
-        ? 'run complete' : `running — last update ${new Date(data.updated_at*1000).toLocaleTimeString()}`;
+        ? 'run complete' : `running, last update ${new Date(data.updated_at*1000).toLocaleTimeString()}`;
     } else {
       const d = new Date(data.updated_at*1000);
-      liveText.textContent = `static snapshot from ${d.toLocaleDateString()} ${d.toLocaleTimeString()} — see repo to run live locally`;
+      liveText.textContent = `static snapshot from ${d.toLocaleDateString()} ${d.toLocaleTimeString()}, see repo to run live locally`;
     }
     document.getElementById('s-processed').textContent = `${data.processed}/${data.target_n} clips`;
     document.getElementById('s-floor').textContent = data.floor.toFixed(4);
@@ -1568,15 +1701,15 @@ async function loadStageE(){
     const maxCurv = Math.max(...d.snapping.map(s => s.max_curvature));
     const passSnap = maxCurv < 0.02;
     box.innerHTML = `
-      <b>Stage E &mdash; leakage</b> (${n} pairs, both datasets): same-clip ${d.leakage.avg_same.toFixed(4)},
+      <b>Stage E leakage</b> (${n} pairs, both datasets): same-clip ${d.leakage.avg_same.toFixed(4)},
       cross-clip ${(d.leakage.avg_same + d.leakage.avg_gap).toFixed(4)}, gap +${d.leakage.avg_gap.toFixed(4)}
       (${((d.leakage.avg_gap/d.leakage.avg_same)*100).toFixed(0)}%).
-      <span class="${passLeak ? 'pass' : ''}">${passLeak ? 'PASS — reads the latent, not leaking.' : 'gap too small.'}</span><br>
-      <b>Stage E &mdash; snapping</b>: max curvature ${maxCurv.toFixed(5)}.
-      <span class="${passSnap ? 'pass' : ''}">${passSnap ? 'PASS — degrades smoothly, no snap.' : 'snap detected.'}</span>
+      <span class="${passLeak ? 'pass' : ''}">${passLeak ? 'PASS: reads the latent, not leaking.' : 'gap too small.'}</span><br>
+      <b>Stage E snapping</b>: max curvature ${maxCurv.toFixed(5)}.
+      <span class="${passSnap ? 'pass' : ''}">${passSnap ? 'PASS: degrades smoothly, no snap.' : 'snap detected.'}</span>
     `;
   } catch(e) {
-    document.getElementById('stage-e-box').textContent = 'stage_e_results.json not found — run scripts/stage_e_real.py';
+    document.getElementById('stage-e-box').textContent = 'stage_e_results.json not found. Run scripts/stage_e_real.py';
   }
 }
 loadStageE();
@@ -1591,12 +1724,12 @@ async function loadStageF(){
       const js = Object.keys(r.avg_downstream);
       const seq = js.map(j => `j=${j}: ${r.avg_downstream[j].toFixed(4)}`).join(' → ');
       const growing = r.divergence_rate > 0.01;
-      return `<b>Stage F &mdash; ${DATASET_LABEL[name] || name}</b> (n=${r.n}): immediate ${r.avg_immediate_delta.toFixed(3)} → ${seq}, rate ${r.divergence_rate.toFixed(4)}
+      return `<b>Stage F ${DATASET_LABEL[name] || name}</b> (n=${r.n}): immediate ${r.avg_immediate_delta.toFixed(3)} → ${seq}, rate ${r.divergence_rate.toFixed(4)}
         <span class="${growing ? '' : 'pass'}">${growing ? '(compounding)' : '(converging, not compounding)'}</span>`;
     });
     box.innerHTML = rows.join('<br>');
   } catch(e) {
-    document.getElementById('stage-f-box').textContent = 'stage_f_results.json not found — run scripts/stage_f_reinjection.py';
+    document.getElementById('stage-f-box').textContent = 'stage_f_results.json not found. Run scripts/stage_f_reinjection.py';
   }
 }
 loadStageF();
@@ -1653,8 +1786,8 @@ function metricsHtml(tag){
   if(!m) return '';
   const ratioClass = m.ratio >= 2 ? 'ratio-hi' : 'ratio-lo';
   const readout = m.ratio >= 2
-    ? `pixel_error moved <span class="${ratioClass}">${m.ratio}x more</span> than latent_drift did &mdash; exactly the divergence a latent-only proxy would miss.`
-    : `pixel_error and latent_drift moved within <span class="${ratioClass}">${m.ratio}x</span> of each other here &mdash; on this clip a latent-only proxy would have tracked reasonably well.`;
+    ? `pixel_error moved <span class="${ratioClass}">${m.ratio}x more</span> than latent_drift did, which is exactly the divergence a latent-only proxy would miss.`
+    : `pixel_error and latent_drift moved within <span class="${ratioClass}">${m.ratio}x</span> of each other here, so on this clip a latent-only proxy would have tracked reasonably well.`;
   return `
     <div class="metrics-box">
       <div class="metrics-title">measured across k = 2 &rarr; 32</div>
