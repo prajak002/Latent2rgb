@@ -16,7 +16,7 @@ A stronger decoder would hallucinate detail the latent doesn't carry, hiding
 exactly the failure this exists to surface.
 
 Live results, methodology, and the full write-up: run the dashboard below,
-or see `outputs/dashboard.html`.
+or see `outputs/index.html`.
 
 ## Contribution
 
@@ -95,7 +95,7 @@ or see `outputs/dashboard.html`.
    here.
 
 3. **Per-clip evidence, not an averaged artifact.** The rollout gallery
-   (`outputs/dashboard.html#gallery-sec`) shows six real clips independently, each
+   (`outputs/index.html#gallery-sec`) shows six real clips independently, each
    annotated with its own `latent_drift`/`pixel_error` horizon-range. The
    divergence isn't uniform across clips — some show pixel_error moving
    ~6x more than latent_drift across k=2→32, others show the two moving
@@ -351,7 +351,7 @@ dataset:
 | `scripts/dump_visuals.py` | writes true/floor-recon/rollout PNGs for a gallery |
 | `scripts/dump_rollout_videos.py` | writes true/rollout video pairs for the drag-compare gallery |
 | `scripts/dump_rollout_metrics.py` | writes per-clip latent_drift/pixel_error for the gallery's video pairs |
-| `scripts/live_dashboard_runner.py` | runs Stage D live across both datasets, feeds `outputs/dashboard.html` |
+| `scripts/live_dashboard_runner.py` | runs Stage D live across both datasets, feeds section 8 of `outputs/index.html` |
 | `scripts/stats_significance.py` | cluster-bootstrap 95% CIs on Stage D / Experiments 1, 4 and Wilson CI on Experiment 3 |
 | `scripts/conformal_calibration.py` | CV+ conformal interval efficiency vs. a proxy-free baseline, Experiment 1 |
 | `scripts/train_second_family.py` | trains the DINOv2 predictor + decoder (second model family) |
@@ -403,25 +403,26 @@ python scripts/experiment1_lewm_family.py   # writes outputs/experiment1_lewm_fa
 
 python scripts/live_dashboard_runner.py &
 python -m http.server 8090 --directory outputs
-# open http://localhost:8090/dashboard.html
+# open http://localhost:8090/
 ```
 
 ## Website
 
-`outputs/dashboard.html` is the whole thing on one page — research question,
-proposed solution, dataset, methodology, the full mathematical formulation
-(every pipeline step with the equation it evaluates, KaTeX-rendered, plus a
-system-design diagram), live-polling Stage D/E/F results, the drag-compare
-rollout gallery, the measurement-gap results, the mathematical interpretation,
-the protocol, the two extra model families, and limitations. A sticky section
-nav runs down all fourteen sections.
+`outputs/index.html` **is** the site — one page, no separate routes. It holds
+everything: research question, proposed solution, dataset, methodology, the
+full mathematical formulation (every pipeline step with the equation it
+evaluates, KaTeX-rendered, plus the system-design diagram), live-polling Stage
+D/E/F results, the drag-compare rollout gallery, the measurement-gap results,
+the mathematical interpretation, the protocol, the two extra model families,
+limitations, status, the code map, the script table, and reproduction
+instructions. A sticky nav runs down all eighteen sections.
 
-`outputs/math.html` and `outputs/results_gallery.html` are now redirect stubs
-into that page's `#design` and `#gallery-sec` anchors (they used to be separate
-pages). `outputs/gallery.html` / `outputs/site.html` are earlier snapshot pages
-kept for reference. `outputs/frames/` are the static sample frames (true /
-floor-reconstruction / rollout-decode) shown in the live feed;
-`outputs/videos/` are the gallery's clip triples.
+Every other page under `outputs/` (`dashboard.html`, `math.html`,
+`results_gallery.html`, and the earlier `gallery.html`, `site.html`,
+`entropy_ladder_pitch.html` snapshots) is now a redirect stub into that page,
+so old inbound links still land in the right place. `outputs/frames/` are the
+static sample frames shown in the live feed; `outputs/videos/` are the
+gallery's clip triples.
 
 Section 6 opens with an illustrated overview of the protocol
 (`outputs/system_diagram.webp`, 146 KB; the full-resolution original is
